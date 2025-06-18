@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 
 export default function Header({
@@ -86,72 +87,60 @@ export default function Header({
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Texto con número de bromas */}
-        <p className="text-white text-sm font-medium">
-          {credits} broma{credits !== 1 && "s"}
-        </p>
-
-        {/* Botón para comprar bromas */}
-        <button
-          onClick={() => showSection("comprar-bromas")}
-          className="bg-white text-black rounded-full w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-200 transition-colors shadow-sm"
-          title="Comprar bromas"
-        >
-          +
-        </button>
-
-        {/* Botón perfil con icono 👤 */}
-        {userName && (
+      {userName ? (
+        <div className="flex items-center gap-4 text-sm">
+          <div className="text-white">{credits} broma{credits !== 1 && "s"}</div>
+          <button
+            onClick={() => showSection("comprar-bromas")}
+            className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
+          >
+            ➕
+          </button>
           <div className="relative" ref={profileRef}>
             <button
-              className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center text-xl"
+              className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
               👤
             </button>
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow z-50 whitespace-nowrap text-sm">
+              <div className="absolute right-0 mt-2 w-44 bg-black text-white rounded shadow z-50 text-xs">
                 <button
                   onClick={() => {
                     showSection("historial");
                     setShowProfileMenu(false);
                   }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-200"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-800"
                 >
                   Historial de bromas
                 </button>
                 <button
                   onClick={logoutFunction}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-200"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-800"
                 >
                   Cerrar sesión
                 </button>
               </div>
             )}
           </div>
-        )}
+        </div>
+      ) : (
+        <div className="flex gap-4 text-sm">
+          <button
+            onClick={() => alert("Aquí iría la lógica de inicio de sesión")}
+            className="text-white hover:underline"
+          >
+            Iniciar sesión
+          </button>
+          <button
+            onClick={() => setShowRegister(true)}
+            className="text-white hover:underline"
+          >
+            Registrarse
+          </button>
+        </div>
+      )}
 
-        {/* Login/registro si no hay sesión */}
-        {!userName && (
-          <div className="flex gap-4 text-sm">
-            <button
-              onClick={() => alert("Aquí iría la lógica de inicio de sesión")}
-              className="text-white hover:underline"
-            >
-              Iniciar sesión
-            </button>
-            <button
-              onClick={() => setShowRegister(true)}
-              className="text-white hover:underline"
-            >
-              Registrarse
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Menú hamburguesa */}
       {menuOpen && (
         <nav
           ref={menuRef}
@@ -186,7 +175,6 @@ export default function Header({
         </nav>
       )}
 
-      {/* Registro */}
       {showRegister && !userName && (
         <div
           ref={registerRef}

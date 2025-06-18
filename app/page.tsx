@@ -24,22 +24,6 @@ export default function Home() {
   setBromasDisponibles(nuevaCantidad);
   localStorage.setItem("bromasDisponibles", nuevaCantidad.toString());
 };
-setTimeout(() => {
-  const textoBroma = message.trim();
-  const respuesta = `Respuesta IA simulada a: ${textoBroma}`;
-  setChat((prev) => [...prev, respuesta]);
-  setProcessing(false);
-
-  // Simula que has generado un audio (reemplázalo por el real más adelante)
-  const nuevaBroma = {
-    texto: textoBroma,
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    fecha: new Date().toISOString(),
-  };
-  const historial = JSON.parse(localStorage.getItem("historialBromas") || "[]");
-  historial.push(nuevaBroma);
-  localStorage.setItem("historialBromas", JSON.stringify(historial));
-}, 1200);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 const [formSent, setFormSent] = useState(false);
@@ -178,51 +162,63 @@ const [formSent, setFormSent] = useState(false);
   }, [chat]);
 
   const iniciarVerificacion = async () => {
-    if (!phone || phone.length < 9) {
-      setSmsError("Introduce un número de teléfono válido.");
-      return;
-    };
+  if (!phone || phone.length < 9) {
+    setSmsError("Introduce un número de teléfono válido.");
+    return;
+  }
 
-    try {
-      const recaptcha = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-      });
+  try {
+    const recaptcha = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+    });
 
-      const result = await signInWithPhoneNumber(auth, phone, recaptcha);
-      setConfirmationResult(result);
-      setSmsError("Código enviado. Revisa tu SMS.");
-    } catch (error) {
-      console.error("Error al enviar SMS:", error);
-      setSmsError("No se pudo enviar el SMS. Prueba más tarde.");
-    }
-  };
+    const result = await signInWithPhoneNumber(auth, phone, recaptcha);
+
+    if (!result) throw new Error("No se recibió confirmationResult");
+
+    setConfirmationResult(result);
+    setSmsError("✅ Código enviado. Revisa tu SMS.");
+  } catch (error: any) {
+    console.error("Error al enviar SMS:", error);
+    const mensaje =
+      error.message?.includes("auth/too-many-requests")
+        ? "Demasiados intentos. Espera unos minutos."
+        : "No se pudo enviar el SMS. Inténtalo más tarde.";
+    setSmsError(`❌ ${mensaje}`);
+  }
+};
+
 
   const verificarCodigo = async () => {
-    try {
-      const result = await confirmationResult.confirm(otp);
-      const user = result.user;
-      localStorage.setItem("userName", user.phoneNumber || "Usuario");
-      setUserName(user.phoneNumber || "Usuario");
-      setSmsError("✅ Número verificado correctamente.");
-    } catch (error) {
-      console.error("Error al verificar código:", error);
-      setSmsError("❌ Código incorrecto o expirado.");
-    };
-    
-const reset = () => {
-  setStarted(false);
-  setChat([]);
-  setMessage("");
-  setProcessing(false);
-  setInitialMessage(null);
-  setVisibleSection(null);
-};
+  if (!confirmationResult) {
+    setSmsError("Primero debes solicitar el código.");
+    return;
+  }
 
-const showSection = (section: string) => {
-  setVisibleSection(section);
-};
+  if (!otp || otp.length < 4) {
+    setSmsError("Introduce un código válido.");
+    return;
+  }
 
-  };
+  try {
+    const result = await confirmationResult.confirm(otp);
+
+    const phoneNumber = result?.user?.phoneNumber || "Usuario";
+
+    setUserName(phoneNumber);
+    localStorage.setItem("userName", phoneNumber);
+    setSmsError("✅ Número verificado correctamente.");
+  } catch (error: any) {
+    console.error("Error al verificar código:", error);
+    const mensaje =
+      error.message?.includes("auth/invalid-verification-code") ||
+      error.message?.includes("code") ||
+      error.message?.includes("invalid")
+        ? "Código incorrecto o expirado."
+        : "Error inesperado al verificar. Inténtalo más tarde.";
+    setSmsError(`❌ ${mensaje}`);
+  }
+};
 
 return (
   <>
@@ -230,6 +226,7 @@ return (
       reset={reset}
       showSection={showSection}
       userName={userName}
+      setUserName={setUserName}
       phone={phone}
       setPhone={setPhone}
       otp={otp}
@@ -240,9 +237,12 @@ return (
       setSmsError={setSmsError}
       iniciarVerificacion={iniciarVerificacion}
       verificarCodigo={verificarCodigo}
+      credits={credits}
+      setCredits={setCredits}
     />
 
-    <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 pl-20 relative">  
+
+    <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 pl-20 relative">
 
       {/* Pantalla 1 */}
       {!started && !visibleSection && (
