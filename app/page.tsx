@@ -1,4 +1,10 @@
 "use client";
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
+
 import { useState, useRef, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
@@ -20,15 +26,15 @@ export default function Home() {
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [smsError, setSmsError] = useState("");
   const [bromasDisponibles, setBromasDisponibles] = useState<number>(0);
+
   const actualizarBromas = (nuevaCantidad: number) => {
-  setBromasDisponibles(nuevaCantidad);
-  localStorage.setItem("bromasDisponibles", nuevaCantidad.toString());
-};
+    setBromasDisponibles(nuevaCantidad);
+    localStorage.setItem("bromasDisponibles", nuevaCantidad.toString());
+  };
 
   const chatEndRef = useRef<HTMLDivElement>(null);
-const [formSent, setFormSent] = useState(false);
+  const [formSent, setFormSent] = useState(false);
 
-  // Función para reiniciar la pantalla
   const reset = () => {
     setStarted(false);
     setChat([]);
@@ -162,84 +168,93 @@ const [formSent, setFormSent] = useState(false);
   }, [chat]);
 
   const iniciarVerificacion = async () => {
-  if (!phone || phone.length < 9) {
-    setSmsError("Introduce un número de teléfono válido.");
-    return;
-  }
+    const cleanedPhone = phone.replace(/\s+/g, "");
+    const finalPhone = cleanedPhone.startsWith("+34")
+      ? cleanedPhone
+      : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
 
-  try {
-    const recaptcha = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
-    });
+    if (!finalPhone || finalPhone.length < 10) {
+      setSmsError("Introduce un número de teléfono válido.");
+      return;
+    }
 
-    const result = await signInWithPhoneNumber(auth, phone, recaptcha);
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => {},
+        });
+      }
 
-    if (!result) throw new Error("No se recibió confirmationResult");
+      const appVerifier = window.recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, finalPhone, appVerifier);
 
-    setConfirmationResult(result);
-    setSmsError("✅ Código enviado. Revisa tu SMS.");
-  } catch (error: any) {
-    console.error("Error al enviar SMS:", error);
-    const mensaje =
-      error.message?.includes("auth/too-many-requests")
+      if (!result) throw new Error("No se recibió confirmationResult");
+
+      setConfirmationResult(result);
+      setSmsError("✅ Código enviado. Revisa tu SMS.");
+    } catch (error: any) {
+      console.error("Error al enviar SMS:", error);
+      const mensaje = error.message?.includes("auth/too-many-requests")
         ? "Demasiados intentos. Espera unos minutos."
         : "No se pudo enviar el SMS. Inténtalo más tarde.";
-    setSmsError(`❌ ${mensaje}`);
-  }
-};
-
+      setSmsError(`❌ ${mensaje}`);
+    }
+  };
 
   const verificarCodigo = async () => {
-  if (!confirmationResult) {
-    setSmsError("Primero debes solicitar el código.");
-    return;
-  }
+    if (!confirmationResult) {
+      setSmsError("Primero debes solicitar el código.");
+      return;
+    }
 
-  if (!otp || otp.length < 4) {
-    setSmsError("Introduce un código válido.");
-    return;
-  }
+    if (!otp || otp.length < 4) {
+      setSmsError("Introduce un código válido.");
+      return;
+    }
 
-  try {
-    const result = await confirmationResult.confirm(otp);
+    try {
+      const result = await confirmationResult.confirm(otp);
+      const phoneNumber = result?.user?.phoneNumber || "Usuario";
 
-    const phoneNumber = result?.user?.phoneNumber || "Usuario";
+      setUserName(phoneNumber);
+      localStorage.setItem("userName", phoneNumber);
+      setSmsError("✅ Número verificado correctamente.");
+    } catch (error: any) {
+      console.error("Error al verificar código:", error);
+      const mensaje =
+        error.message?.includes("auth/invalid-verification-code") ||
+        error.message?.includes("code") ||
+        error.message?.includes("invalid")
+          ? "Código incorrecto o expirado."
+          : "Error inesperado al verificar. Inténtalo más tarde.";
+      setSmsError(`❌ ${mensaje}`);
+    }
+  };
 
-    setUserName(phoneNumber);
-    localStorage.setItem("userName", phoneNumber);
-    setSmsError("✅ Número verificado correctamente.");
-  } catch (error: any) {
-    console.error("Error al verificar código:", error);
-    const mensaje =
-      error.message?.includes("auth/invalid-verification-code") ||
-      error.message?.includes("code") ||
-      error.message?.includes("invalid")
-        ? "Código incorrecto o expirado."
-        : "Error inesperado al verificar. Inténtalo más tarde.";
-    setSmsError(`❌ ${mensaje}`);
-  }
-};
+  return (
+    <>
+      <div id="recaptcha-container" />
+      <Header
+        reset={reset}
+        showSection={showSection}
+        userName={userName}
+        setUserName={setUserName}
+        phone={phone}
+        setPhone={setPhone}
+        otp={otp}
+        setOtp={setOtp}
+        confirmationResult={confirmationResult}
+        setConfirmationResult={setConfirmationResult}
+        smsError={smsError}
+        setSmsError={setSmsError}
+        iniciarVerificacion={iniciarVerificacion}
+        verificarCodigo={verificarCodigo}
+        credits={credits}
+        setCredits={setCredits}
+      />
 
-return (
-  <>
-    <Header
-      reset={reset}
-      showSection={showSection}
-      userName={userName}
-      setUserName={setUserName}
-      phone={phone}
-      setPhone={setPhone}
-      otp={otp}
-      setOtp={setOtp}
-      confirmationResult={confirmationResult}
-      setConfirmationResult={setConfirmationResult}
-      smsError={smsError}
-      setSmsError={setSmsError}
-      iniciarVerificacion={iniciarVerificacion}
-      verificarCodigo={verificarCodigo}
-      credits={credits}
-      setCredits={setCredits}
-    />
+<div id="recaptcha-container" />
 
 
     <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 pl-20 relative">

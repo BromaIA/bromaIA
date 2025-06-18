@@ -7,6 +7,10 @@
   width: 0px;
   height: 0px;
 }
+/* Fuerza el color blanco para todos los textos dentro de secciones del menú */
+.menu-section * {
+  color: white !important;
+}
 
 .no-scrollbar {
   -ms-overflow-style: none; /* IE y Edge */

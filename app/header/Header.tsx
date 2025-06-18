@@ -36,24 +36,13 @@ export default function Header({
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutsideMenu = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
     };
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutsideMenu);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutsideMenu);
-    };
-  }, [menuOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleMenuClick = (section: string) => {
     showSection(section);
@@ -68,8 +57,8 @@ export default function Header({
   };
 
   return (
-    <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-10 bg-black">
-      <div className="flex items-center gap-3">
+    <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-40 bg-black shadow-lg">
+      <div className="flex items-center gap-3 relative">
         <button
           onClick={() => {
             reset();
@@ -79,17 +68,51 @@ export default function Header({
         >
           BromaIA
         </button>
+
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="text-white text-2xl"
         >
           ☰
         </button>
+
+        {menuOpen && (
+          <nav
+            ref={menuRef}
+            className="absolute top-full left-0 mt-2 bg-black border border-white/20 rounded-lg p-4 w-64 text-sm z-50 shadow-lg animate-slide-down"
+          >
+            <ul className="flex flex-col gap-2 text-left">
+              {[
+                ["¿Qué es BromaIA?", "que-es-bromaia"],
+                ["¿Cómo funciona BromaIA?", "como-funciona-bromaia"],
+                ["Ejemplos de bromas IA", "ejemplos-de-bromaia"],
+                ["Comprar bromas", "comprar-bromas"],
+                ["Preguntas frecuentes (FAQ)", "faq"],
+                ["Términos y condiciones", "terminos-y-condiciones"],
+                ["Política de privacidad", "politica-de-privacidad"],
+                ["Política de cookies", "politica-de-cookies"],
+                ["Aviso legal", "aviso-legal"],
+                ["Contacto", "contacto"],
+              ].map(([label, slug], i) => (
+                <li key={i}>
+                  <button
+                    onClick={() => handleMenuClick(slug)}
+                    className="text-left text-white hover:underline w-full"
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </div>
 
       {userName ? (
         <div className="flex items-center gap-4 text-sm">
-          <div className="text-white">{credits} broma{credits !== 1 && "s"}</div>
+          <div className="text-white">
+            {credits} broma{credits !== 1 && "s"}
+          </div>
           <button
             onClick={() => showSection("comprar-bromas")}
             className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
@@ -103,6 +126,7 @@ export default function Header({
             >
               👤
             </button>
+
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-44 bg-black text-white rounded shadow z-50 text-xs">
                 <button
@@ -139,40 +163,6 @@ export default function Header({
             Registrarse
           </button>
         </div>
-      )}
-
-      {menuOpen && (
-        <nav
-          ref={menuRef}
-          className="absolute top-14 left-6 z-[9999] bg-black border border-white rounded p-4 w-56 text-sm"
-        >
-          <ul className="flex flex-col gap-1">
-            {[
-              "¿Qué es BromaIA?",
-              "¿Cómo funciona BromaIA?",
-              "Ejemplos de bromas IA",
-              "Comprar bromas",
-              "Historial de bromas",
-              "Preguntas frecuentes (FAQ)",
-              "Términos y condiciones",
-              "Política de privacidad",
-              "Política de cookies",
-              "Aviso legal",
-              "Contacto",
-            ].map((title, i) => (
-              <li key={i}>
-                <button
-                  onClick={() =>
-                    handleMenuClick(title.toLowerCase().replaceAll(" ", "-"))
-                  }
-                  className="text-left text-white hover:underline w-full"
-                >
-                  {title}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
       )}
 
       {showRegister && !userName && (
@@ -216,6 +206,22 @@ export default function Header({
           <div id="recaptcha-container" />
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes slideDown {
+          0% {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-down {
+          animation: slideDown 0.2s ease-out;
+        }
+      `}</style>
     </header>
   );
 }
