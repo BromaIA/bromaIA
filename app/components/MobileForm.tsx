@@ -11,18 +11,17 @@ export default function MobileForm({
   handleSend,
 }: any) {
   return (
-    <section className="w-full pt-8 bg-black text-white md:hidden">
-      {/* Contenedor absoluto sin padding */}
-      <div className="w-full text-white">
-        <h1 className="text-[56px] font-extrabold mb-2 leading-none">
+    <section className="w-screen min-h-screen bg-black text-white fixed top-0 left-0 z-0 md:hidden overflow-x-hidden">
+      <div className="absolute left-0 top-8 w-screen px-0">
+        <h1 className="text-[60px] font-extrabold leading-none text-white">
           BromaIA
         </h1>
 
-        <h2 className="text-sm font-normal mb-6 leading-tight whitespace-nowrap">
+        <h2 className="text-sm font-normal mb-6 leading-tight text-white whitespace-nowrap">
           Bromas telefónicas generadas con IA.
         </h2>
 
-        <p className="text-xs mb-2 font-semibold whitespace-nowrap">
+        <p className="text-xs text-white mb-2 font-semibold whitespace-nowrap">
           Introduce 📞 de la persona que quieras gastar la broma:
         </p>
         <input
@@ -33,7 +32,7 @@ export default function MobileForm({
           className="bg-rose-400 text-white placeholder-white px-4 py-2 rounded-full text-sm text-center w-[95%]"
         />
 
-        <p className="text-xs mt-4 mb-2 font-semibold whitespace-nowrap">
+        <p className="text-xs text-white mt-4 mb-2 font-semibold whitespace-nowrap">
           Elige el tipo de voz:
         </p>
         <select
@@ -52,7 +51,7 @@ export default function MobileForm({
           <option value="voz2">Voz masculina</option>
         </select>
 
-        <p className="text-xs mt-4 mb-2 font-semibold whitespace-nowrap">
+        <p className="text-xs text-white mt-4 mb-2 font-semibold whitespace-nowrap">
           La IA improvisa el resto y le pone la voz:
         </p>
         <div className="relative mb-4" style={{ height: "80px", width: "95%" }}>
