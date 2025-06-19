@@ -9,6 +9,8 @@ import { useState, useRef, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import Header from "./header/Header";
+import MobileForm from "./components/MobileForm";
+
 
 export default function Home() {
   const [message, setMessage] = useState("");
@@ -280,77 +282,79 @@ export default function Home() {
 
     <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 pl-20 relative">
 
+{/* Pantalla 1 solo para escritorio */}
+<div className="hidden md:block">
+  {/* tu código aquí sin tocar nada */}
+  <section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center">
+    <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
+    <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
+      Bromas telefónicas generadas con IA.
+    </h2>
 
-{/* Pantalla 1 */}
-<section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center">
-  <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
-
-  <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
-    Bromas telefónicas generadas con IA.
-  </h2>
-
-  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-    Introduce 📞 de la persona que quieras gastar la broma:
-  </div>
-  <input
-    type="tel"
-    value={phone}
-    onChange={(e) => setPhone(e.target.value)}
-    placeholder="+34 600000000"
-    className="w-full bg-rose-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
-  />
-
-  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-    Elige el tipo de voz:
-  </div>
-  <select
-    value={voiceOption}
-    onChange={(e) => setVoiceOption(e.target.value)}
-    className="w-full bg-rose-400 text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
-    style={{
-      backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'right 1rem center',
-      backgroundSize: '1rem',
-    }}
-  >
-    <option value="">Selecciona una voz</option>
-    <option value="voz1">Femenina joven</option>
-    <option value="voz2">Masculina seria</option>
-  </select>
-
-  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-    La IA improvisa el resto y le pone la voz:
-  </div>
-
-  <div className="relative w-full mb-4" style={{ height: "90px" }}>
-    <textarea
-      value={message}
-      onChange={(e) => setMessage(e.target.value)}
-      placeholder="    Escribe tu broma."
-      className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
-      style={{
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-      }}
+    <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+      Introduce 📞 de la persona que quieras gastar la broma:
+    </div>
+    <input
+      type="tel"
+      value={phone}
+      onChange={(e) => setPhone(e.target.value)}
+      placeholder="+34 600000000"
+      className="w-full bg-rose-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
     />
-    <button
-      onClick={handleSend}
-      className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
-    >
-      ›
-    </button>
 
-    <style jsx>{`
-      textarea::-webkit-scrollbar {
-        display: none;
-      }
-      textarea::placeholder {
-        text-align: left;
-      }
-    `}</style>
-  </div>
-</section>
+    <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+      Elige el tipo de voz:
+    </div>
+    <select
+      value={voiceOption}
+      onChange={(e) => setVoiceOption(e.target.value)}
+      className="w-full bg-rose-400 text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 1rem center',
+        backgroundSize: '1rem',
+      }}
+    >
+      <option value="">Selecciona una voz</option>
+      <option value="voz1">Femenina joven</option>
+      <option value="voz2">Masculina seria</option>
+    </select>
+
+    <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+      La IA improvisa el resto y le pone la voz:
+    </div>
+
+    <div className="relative w-full mb-4" style={{ height: "90px" }}>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="    Escribe tu broma."
+        className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      />
+      <button
+        onClick={handleSend}
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
+      >
+        ›
+      </button>
+
+      <style jsx>{`
+        textarea::-webkit-scrollbar {
+          display: none;
+        }
+        textarea::placeholder {
+          text-align: left;
+        }
+      `}</style>
+    </div>
+  </section>
+</div>
+
 
 
 
