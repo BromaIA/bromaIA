@@ -11,14 +11,14 @@ export default function MobileForm({
   handleSend,
 }: any) {
   return (
-    <section className="w-full max-w-sm mx-auto px-4 py-8 bg-black text-white md:hidden">
-      <h1 className="text-5xl font-extrabold mb-1 text-white text-center">BromaIA</h1>
+    <section className="w-full max-w-xs mx-auto px-4 pt-8 bg-black text-white md:hidden">
+      <h1 className="text-4xl font-extrabold mb-1 text-white text-left">BromaIA</h1>
 
-      <h2 className="text-lg font-medium mb-6 text-white text-left ml-4 whitespace-nowrap">
+      <h2 className="text-sm font-medium mb-5 text-white text-left whitespace-nowrap">
         Bromas telefónicas generadas con IA.
       </h2>
 
-      <p className="text-sm text-white mb-2 text-left ml-4 whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
         Introduce 📞 de la persona que quieras gastar la broma:
       </p>
       <input
@@ -26,16 +26,16 @@ export default function MobileForm({
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="+34 600000000"
-        className="w-full bg-rose-400 text-white placeholder-white px-4 py-3 rounded-full mb-4 text-center"
+        className="w-full bg-rose-400 text-white placeholder-white px-4 py-2 rounded-full mb-4 text-sm text-center"
       />
 
-      <p className="text-sm text-white mb-2 text-left ml-4 whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
         Elige el tipo de voz:
       </p>
       <select
         value={selectedVoice}
         onChange={(e) => setSelectedVoice(e.target.value)}
-        className="w-full bg-rose-400 text-white px-4 py-3 rounded-full mb-4 text-center appearance-none"
+        className="w-full bg-rose-400 text-white px-4 py-2 rounded-full mb-4 text-sm text-center appearance-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
@@ -48,15 +48,15 @@ export default function MobileForm({
         <option value="voz2">Voz masculina</option>
       </select>
 
-      <p className="text-sm text-white mb-2 text-left ml-4 whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
         La IA improvisa el resto y le pone la voz:
       </p>
-      <div className="relative w-full mb-4" style={{ height: "90px" }}>
+      <div className="relative w-full mb-4" style={{ height: "80px" }}>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="    Escribe tu broma."
-          className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
+          className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-2 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
