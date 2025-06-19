@@ -61,6 +61,70 @@ html, body {
   font-size: 3rem; /* tamaño equivalente a text-5xl */
   line-height: 1.1;
 }
+@media (max-width: 600px) {
+  /* Ajustar los títulos para que estén en línea y con tamaño reducido */
+  #pantalla1 h1, #pantalla1 h2 {
+    font-size: 1.8rem !important; /* reduce tamaño */
+    line-height: 1.2 !important; /* espacio compacto */
+    white-space: nowrap; /* evita salto de línea */
+  }
+
+  /* Eslogan: ajusta para máximo 2 líneas con puntos suspensivos */
+  #pantalla1 p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Checkbox etiqueta: más pequeño y bien alineado */
+  label.flex.items-center.space-x-2.text-xs.max-w-xs.mx-auto {
+    font-size: 0.75rem !important;
+  }
+  label.flex.items-center.space-x-2.text-xs.max-w-xs.mx-auto input {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+@media (max-width: 600px) {
+  #pantalla1 h1, #pantalla1 h2 {
+    font-size: 2.5rem !important;
+    color: #ff4081 !important; /* rosa vibrante */
+    font-weight: 900 !important;
+    text-shadow: 0 0 10px rgba(255, 64, 129, 0.7);
+  }
+
+  #pantalla1 p {
+    font-size: 1.1rem !important;
+    color: #fff !important;
+    text-shadow: 0 0 5px rgba(0,0,0,0.7);
+  }
+
+  textarea {
+    background-color: #ff79b0 !important; /* rosa más llamativo */
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  button {
+    background-color: #c2185b !important; /* rosa oscuro */
+    box-shadow: 0 4px 6px rgba(194,24,91,0.6);
+    transition: transform 0.3s ease;
+  }
+  button:hover {
+    transform: scale(1.1);
+  }
+}
+@media (max-width: 600px) {
+  button {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(194,24,91,0.6); }
+    50% { box-shadow: 0 0 20px rgba(194,24,91,1); }
+  }
+}
 
 @media (max-width: 600px) {
   .responsive-title {
