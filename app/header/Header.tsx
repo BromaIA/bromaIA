@@ -56,6 +56,43 @@ export default function Header({
     localStorage.removeItem("bromaCredits");
   };
 
+  // Detectar si vuelve de Stripe (success=1, 3, 5)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const success = searchParams.get("success");
+    if (success) {
+      const cantidad = parseInt(success);
+      if (!isNaN(cantidad)) {
+        const nuevosCreditos = credits + cantidad;
+        setCredits(nuevosCreditos);
+        localStorage.setItem("bromaCredits", nuevosCreditos.toString());
+        searchParams.delete("success");
+        const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    }
+  }, []);
+
+  // Función para abrir Stripe Checkout según cantidad
+  const handleComprarPack = async (cantidad: number) => {
+    try {
+      const res = await fetch("/api/checkout_sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cantidad }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("No se pudo iniciar el pago.");
+      }
+    } catch (err) {
+      console.error("Error al crear la sesión de Stripe:", err);
+      alert("Hubo un error al procesar el pago.");
+    }
+  };
+
   return (
     <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-40 bg-black shadow-lg">
       <div className="flex items-center gap-3 relative">
@@ -113,12 +150,16 @@ export default function Header({
           <div className="text-white">
             {credits} broma{credits !== 1 && "s"}
           </div>
+
+          {/* Botón + para abrir sección de compra */}
           <button
             onClick={() => showSection("comprar-bromas")}
             className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
+            title="Comprar bromas"
           >
-            ➕
+            +
           </button>
+
           <div className="relative" ref={profileRef}>
             <button
               className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
@@ -126,7 +167,6 @@ export default function Header({
             >
               👤
             </button>
-
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-44 bg-black text-white rounded shadow z-50 text-xs">
                 <button

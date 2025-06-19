@@ -27,6 +27,26 @@ export default function Home() {
   const [smsError, setSmsError] = useState("");
   const [bromasDisponibles, setBromasDisponibles] = useState<number>(0);
 
+  const handleComprarPack = async (cantidad: number) => {
+  try {
+    const res = await fetch("/api/checkout_sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cantidad }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("No se pudo iniciar el pago.");
+    }
+  } catch (err) {
+    console.error("Error al crear la sesión de Stripe:", err);
+    alert("Hubo un error al procesar el pago.");
+  }
+};
+
+
   const actualizarBromas = (nuevaCantidad: number) => {
     setBromasDisponibles(nuevaCantidad);
     localStorage.setItem("bromasDisponibles", nuevaCantidad.toString());
@@ -320,8 +340,8 @@ export default function Home() {
                 </a>{" "}
                 y{" "}
                 <a href="#politica-de-privacidad" className="underline" onClick={() => setVisibleSection("politica-de-privacidad")}>
-                  política de privacidad
-                </a>.
+                  política de privacidad.
+                </a>
               </label>
             </div>
             {errorTerminos && (
@@ -1127,40 +1147,40 @@ export default function Home() {
   </section>
 )}
 
-        {visibleSection === "comprar-bromas" && (
-          <section className="max-w-xl mx-auto px-4 pt-6 pb-4 text-white overflow-y-auto">
-            <h3 className="text-2xl font-bold mb-6 mt-0 text-center">Comprar bromas</h3>
-            <div className="space-y-4">
-              <div className="border border-white rounded p-4 text-center">
-                <p className="text-lg mb-2">🎉 1 broma – 0,99 €</p>
-                <button
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
-                  onClick={() => actualizarBromas(bromasDisponibles + 1)}
-                >
-                  Comprar
-                </button>
-              </div>
-              <div className="border border-white rounded p-4 text-center">
-                <p className="text-lg mb-2">🔥 3 bromas – 2,99 €</p>
-                <button
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
-                  onClick={() => actualizarBromas(bromasDisponibles + 3)}
-                >
-                  Comprar
-                </button>
-              </div>
-              <div className="border border-white rounded p-4 text-center">
-                <p className="text-lg mb-2">💥 5 bromas – 4,99 €</p>
-                <button
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
-                  onClick={() => actualizarBromas(bromasDisponibles + 5)}
-                >
-                  Comprar
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
+{visibleSection === "comprar-bromas" && (
+  <section className="max-w-xl mx-auto px-4 pt-6 pb-4 text-white overflow-y-auto">
+    <h3 className="text-2xl font-bold mb-6 mt-0 text-center">Comprar bromas</h3>
+    <div className="space-y-4">
+      <div className="border border-white rounded p-4 text-center">
+        <p className="text-lg mb-2">🎉 1 broma – 0,99 €</p>
+        <button
+          onClick={() => handleComprarPack(1)}
+          className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
+        >
+          Comprar
+        </button>
+      </div>
+      <div className="border border-white rounded p-4 text-center">
+        <p className="text-lg mb-2">🔥 3 bromas – 2,99 €</p>
+        <button
+          onClick={() => handleComprarPack(3)}
+          className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
+        >
+          Comprar
+        </button>
+      </div>
+      <div className="border border-white rounded p-4 text-center">
+        <p className="text-lg mb-2">💥 5 bromas – 4,99 €</p>
+        <button
+          onClick={() => handleComprarPack(5)}
+          className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded"
+        >
+          Comprar
+        </button>
+      </div>
+    </div>
+  </section>
+)}
       </div>
     </>
   );
