@@ -284,7 +284,7 @@ export default function Home() {
 
 {/* Pantalla 1 solo para escritorio */}
 <div className="hidden md:block">
-  {/* tu código aquí sin tocar nada */}
+
   <section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center">
     <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
     <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
@@ -352,10 +352,21 @@ export default function Home() {
         }
       `}</style>
     </div>
+
   </section>
+
 </div>
 
-
+{/* Pantalla 1 solo para móvil */}
+<MobileForm
+  phone={phone}
+  setPhone={setPhone}
+  message={message}
+  setMessage={setMessage}
+  selectedVoice={voiceOption}
+  setSelectedVoice={setVoiceOption}
+  handleSend={handleSend}
+/>
 
 
       {/* Pantalla 2 */}
