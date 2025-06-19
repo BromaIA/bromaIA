@@ -12,6 +12,7 @@ import Header from "./header/Header";
 
 export default function Home() {
   const [message, setMessage] = useState("");
+  const [voiceOption, setVoiceOption] = useState("");
   const [chat, setChat] = useState<string[]>([]);
   const [started, setStarted] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -279,77 +280,76 @@ export default function Home() {
 
     <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 pl-20 relative">
 
-      {/* Pantalla 1 */}
-      {!started && !visibleSection && (
-        <section id="pantalla1" className="w-full max-w-xl text-center mx-auto px-4">
-          <h1 className="text-5xl font-bold mb-0 responsive-title leading-tight">Tu voz da risa.</h1>
-          <h2 className="text-5xl font-bold mb-2 responsive-title leading-tight">La nuestra, llamadas.</h2>
 
-          <div className="flex flex-col items-start text-left mx-auto" style={{ width: "100%", maxWidth: "561px" }}>
-            <p className="text-sm whitespace-nowrap mb-3">
-              Bromas telefónicas personalizables con IA y grabación al instante.
-            </p>
+{/* Pantalla 1 */}
+<section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center">
+  <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
+  <h2 className="text-lg font-medium mb-6 text-white">Bromas telefónicas generadas con IA.</h2>
 
-            <div className="relative w-full mb-3 h-[45px]">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="Empieza a generar tu broma..."
-                className="w-full h-full bg-rose-400 text-white placeholder-white px-3 pr-8 pt-[11px] pb-0 rounded resize-none overflow-y-auto text-xs focus:outline-none text-left leading-tight"
-                style={{
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                  lineHeight: "1.4",
-                  paddingTop: "10px",
-                  paddingBottom: "10px",
-                }}
-              />
-              <style jsx>{`
-                textarea::-webkit-scrollbar {
-                  display: none;
-                }
-                textarea::placeholder {
-                  vertical-align: middle;
-                }
-              `}</style>
-              <button
-                onClick={handleSend}
-                className="absolute right-1 top-1/2 -translate-y-1/2 bg-black text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] leading-none"
-              >
-                ›
-              </button>
-            </div>
+  <div className="text-sm text-white text-center mb-2">
+    Introduce 📞 de la persona que quieras gastar la broma:
+  </div>
+  <input
+    type="tel"
+    value={phone}
+    onChange={(e) => setPhone(e.target.value)}
+    placeholder="+34 600000000"
+    className="w-full bg-rose-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
+  />
 
-            <div className="text-xs w-full mb-2">
-              <label className="inline-flex items-center gap-1 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={aceptaTerminos}
-                  onChange={() => setAceptaTerminos(!aceptaTerminos)}
-                  className="cursor-pointer"
-                />
-                Acepto los{" "}
-                <a href="#terminos-y-condiciones" className="underline" onClick={() => setVisibleSection("terminos-y-condiciones")}>
-                  términos
-                </a>{" "}
-                y{" "}
-                <a href="#politica-de-privacidad" className="underline" onClick={() => setVisibleSection("politica-de-privacidad")}>
-                  política de privacidad.
-                </a>
-              </label>
-            </div>
-            {errorTerminos && (
-              <p className="text-red-500 text-xs mt-2 text-center">{errorTerminos}</p>
-            )}
-          </div>
-        </section>
-      )}
+  <div className="text-sm text-white text-center mb-2">
+    Elige el tipo de voz:
+  </div>
+  <select
+    value={voiceOption}
+    onChange={(e) => setVoiceOption(e.target.value)}
+    className="w-full bg-rose-400 text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
+    style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 1rem center',
+      backgroundSize: '1rem',
+    }}
+  >
+    <option value="">Selecciona una voz</option>
+    <option value="voz1">Femenina joven</option>
+    <option value="voz2">Masculina seria</option>
+  </select>
+
+  <div className="text-sm text-white text-center mb-2">
+    La IA improvisa el resto y le pone la voz:
+  </div>
+
+  <div className="relative w-full mb-4" style={{ height: "90px" }}>
+    <textarea
+      value={message}
+      onChange={(e) => setMessage(e.target.value)}
+      placeholder="  Escribe tu broma." // 4 espacios reales
+      className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
+      style={{
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+      }}
+    />
+    <button
+      onClick={handleSend}
+      className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
+    >
+      ›
+    </button>
+
+    <style jsx>{`
+      textarea::-webkit-scrollbar {
+        display: none;
+      }
+      textarea::placeholder {
+        text-align: left;
+      }
+    `}</style>
+  </div>
+</section>
+
+
 
       {/* Pantalla 2 */}
       {started && !visibleSection && (
