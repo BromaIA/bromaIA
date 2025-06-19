@@ -284,9 +284,12 @@ export default function Home() {
 {/* Pantalla 1 */}
 <section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center">
   <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
-  <h2 className="text-lg font-medium mb-6 text-white">Bromas telefónicas generadas con IA.</h2>
 
-  <div className="text-sm text-white text-center mb-2">
+  <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
+    Bromas telefónicas generadas con IA.
+  </h2>
+
+  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
     Introduce 📞 de la persona que quieras gastar la broma:
   </div>
   <input
@@ -297,7 +300,7 @@ export default function Home() {
     className="w-full bg-rose-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
   />
 
-  <div className="text-sm text-white text-center mb-2">
+  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
     Elige el tipo de voz:
   </div>
   <select
@@ -316,7 +319,7 @@ export default function Home() {
     <option value="voz2">Masculina seria</option>
   </select>
 
-  <div className="text-sm text-white text-center mb-2">
+  <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
     La IA improvisa el resto y le pone la voz:
   </div>
 
@@ -324,7 +327,7 @@ export default function Home() {
     <textarea
       value={message}
       onChange={(e) => setMessage(e.target.value)}
-      placeholder="  Escribe tu broma." // 4 espacios reales
+      placeholder="    Escribe tu broma."
       className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
       style={{
         scrollbarWidth: "none",
