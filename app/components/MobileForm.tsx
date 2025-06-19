@@ -11,47 +11,53 @@ export default function MobileForm({
   handleSend,
 }: any) {
   return (
-    <section className="w-full max-w-xs mx-auto px-4 pt-8 bg-black text-white md:hidden">
-      <h1 className="text-4xl font-extrabold mb-1 text-white text-left">BromaIA</h1>
+    <section className="w-full max-w-xs px-4 pt-8 bg-black text-white md:hidden">
+      <h1 className="text-6xl font-extrabold mb-2 text-white text-left leading-none">
+        BromaIA
+      </h1>
 
-      <h2 className="text-sm font-medium mb-5 text-white text-left whitespace-nowrap">
+      <h2 className="text-sm font-normal mb-6 text-white text-left leading-tight whitespace-nowrap">
         Bromas telefónicas generadas con IA.
       </h2>
 
-      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left font-semibold whitespace-nowrap">
         Introduce 📞 de la persona que quieras gastar la broma:
       </p>
-      <input
-        type="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="+34 600000000"
-        className="w-full bg-rose-400 text-white placeholder-white px-4 py-2 rounded-full mb-4 text-sm text-center"
-      />
+      <div className="w-[92%] ml-1 mb-4">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+34 600000000"
+          className="w-full bg-rose-400 text-white placeholder-white px-4 py-2 rounded-full text-sm text-center"
+        />
+      </div>
 
-      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left font-semibold whitespace-nowrap">
         Elige el tipo de voz:
       </p>
-      <select
-        value={selectedVoice}
-        onChange={(e) => setSelectedVoice(e.target.value)}
-        className="w-full bg-rose-400 text-white px-4 py-2 rounded-full mb-4 text-sm text-center appearance-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 1rem center",
-          backgroundSize: "1rem",
-        }}
-      >
-        <option disabled value="">Selecciona una voz</option>
-        <option value="voz1">Voz femenina</option>
-        <option value="voz2">Voz masculina</option>
-      </select>
+      <div className="w-[92%] ml-1 mb-4">
+        <select
+          value={selectedVoice}
+          onChange={(e) => setSelectedVoice(e.target.value)}
+          className="w-full bg-rose-400 text-white px-4 py-2 rounded-full text-sm text-center appearance-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 1rem center",
+            backgroundSize: "1rem",
+          }}
+        >
+          <option disabled value="">Selecciona una voz</option>
+          <option value="voz1">Voz femenina</option>
+          <option value="voz2">Voz masculina</option>
+        </select>
+      </div>
 
-      <p className="text-xs text-white mb-2 text-left whitespace-nowrap">
+      <p className="text-xs text-white mb-2 text-left font-semibold whitespace-nowrap">
         La IA improvisa el resto y le pone la voz:
       </p>
-      <div className="relative w-full mb-4" style={{ height: "80px" }}>
+      <div className="relative w-[92%] ml-1 mb-4" style={{ height: "80px" }}>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
