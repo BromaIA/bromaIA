@@ -57,6 +57,18 @@ html, body {
   display: none;
 }
 
+.responsive-title {
+  font-size: 3rem; /* tamaño equivalente a text-5xl */
+  line-height: 1.1;
+}
+
+@media (max-width: 600px) {
+  .responsive-title {
+    font-size: 1.8rem; /* tamaño reducido para móvil */
+    line-height: 1.2;
+  }
+}
+
 .custom-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;

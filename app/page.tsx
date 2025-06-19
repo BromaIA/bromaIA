@@ -281,11 +281,11 @@ export default function Home() {
 
       {/* Pantalla 1 */}
       {!started && !visibleSection && (
-        <section id="pantalla1" className="w-full max-w-xl text-center">
-          <h1 className="text-5xl font-bold mb-0">Tu voz da risa.</h1>
-          <h2 className="text-5xl font-bold mb-2">La nuestra, llamadas.</h2>
+        <section id="pantalla1" className="w-full max-w-xl text-center mx-auto px-4">
+          <h1 className="text-5xl font-bold mb-0 responsive-title leading-tight">Tu voz da risa.</h1>
+          <h2 className="text-5xl font-bold mb-2 responsive-title leading-tight">La nuestra, llamadas.</h2>
 
-          <div className="flex flex-col items-start text-left mx-auto" style={{ width: "561px" }}>
+          <div className="flex flex-col items-start text-left mx-auto" style={{ width: "100%", maxWidth: "561px" }}>
             <p className="text-sm whitespace-nowrap mb-3">
               Bromas telefónicas personalizables con IA y grabación al instante.
             </p>
