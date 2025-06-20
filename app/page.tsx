@@ -366,7 +366,12 @@ export default function Home() {
   selectedVoice={voiceOption}
   setSelectedVoice={setVoiceOption}
   handleSend={handleSend}
+  aceptaTerminos={aceptaTerminos}
+  setAceptaTerminos={setAceptaTerminos}
+  errorTerminos={errorTerminos}
 />
+
+
 
 
       {/* Pantalla 2 */}
