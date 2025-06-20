@@ -11,8 +11,8 @@ export default function MobileForm({
   handleSend,
 }: any) {
   return (
-    <section className="w-screen h-screen bg-black text-white fixed inset-0 flex items-end justify-start md:hidden overflow-hidden">
-      <div className="w-full flex flex-col justify-end items-start px-0 pt-4 pb-6">
+    <section className="w-screen h-screen bg-black text-white fixed inset-0 flex items-center justify-start md:hidden overflow-hidden">
+      <div className="w-full flex flex-col justify-start items-start pt-16 pb-6">
         <div className="w-full">
           <h1 className="text-[72px] font-extrabold leading-none mb-1 pl-3">
             BromaIA
@@ -67,7 +67,10 @@ export default function MobileForm({
               onChange={(e) => setMessage(e.target.value)}
               placeholder="    Escribe tu broma."
               className="w-full h-full bg-rose-400 text-white placeholder-white px-4 pr-10 py-2 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
             />
             <button
               onClick={handleSend}
