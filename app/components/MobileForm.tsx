@@ -27,7 +27,7 @@ export default function MobileForm({
   errorTerminos,
 }: MobileFormProps) {
   return (
-    <section className="w-full max-w-sm pt-8 pb-8 bg-black text-white md:hidden flex flex-col items-center text-center px-6">
+    <section className="w-full max-w-sm h-screen bg-black text-white md:hidden flex flex-col justify-start text-center px-6 pt-8 overflow-hidden">
       <h1 className="text-5xl font-extrabold mb-1 whitespace-nowrap">BromaIA</h1>
       <h2 className="text-lg font-medium mb-6 whitespace-nowrap">
         Bromas telefónicas generadas con IA.
@@ -81,7 +81,6 @@ export default function MobileForm({
         `}</style>
       </div>
 
-      {/* Casilla de términos */}
       <div className="flex items-center justify-center gap-2 mb-2 text-xs text-white">
         <input
           type="checkbox"
