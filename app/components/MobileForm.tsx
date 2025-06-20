@@ -14,7 +14,7 @@ export default function MobileForm({
   errorTerminos,
 }: any) {
   return (
-    <section className="w-full h-screen bg-black text-white flex flex-col items-center justify-start pt-[28vh] px-4 overflow-hidden">
+    <section className="w-full h-screen bg-black text-white flex flex-col items-center justify-start pt-[28vh] px-4 overflow-hidden -translate-x-[75px]">
       <h1 className="text-4xl font-extrabold mb-1 text-center whitespace-nowrap">
         BromaIA
       </h1>
