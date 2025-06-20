@@ -14,16 +14,16 @@ export default function MobileForm({
   errorTerminos,
 }: any) {
   return (
-    <section className="w-full h-screen bg-black text-white flex flex-col justify-start items-center pt-[16vh] px-2 overflow-hidden">
-      <h1 className="text-[48px] font-extrabold leading-tight text-center whitespace-nowrap mb-1">
+    <section className="w-full h-screen bg-black text-white flex flex-col justify-start items-start pt-[16vh] px-1 overflow-hidden">
+      <h1 className="text-[48px] font-extrabold leading-tight text-left whitespace-nowrap mb-1">
         BromaIA
       </h1>
 
-      <h2 className="text-base font-medium text-center whitespace-nowrap mb-6">
+      <h2 className="text-base font-medium text-left whitespace-nowrap mb-6">
         Bromas telefónicas generadas con IA.
       </h2>
 
-      <div className="text-sm font-semibold text-center whitespace-nowrap mb-1">
+      <div className="text-sm font-semibold text-left whitespace-nowrap mb-1">
         Introduce ☎️ de la persona que quieras gastar la broma:
       </div>
       <input
@@ -34,7 +34,7 @@ export default function MobileForm({
         className="w-full bg-[#d96ba1] text-white placeholder-white rounded-full px-4 py-3 mb-5 text-sm text-center focus:outline-none"
       />
 
-      <div className="text-sm font-semibold text-center whitespace-nowrap mb-1">
+      <div className="text-sm font-semibold text-left whitespace-nowrap mb-1">
         Elige el tipo de voz:
       </div>
       <select
@@ -53,7 +53,7 @@ export default function MobileForm({
         <option value="voz2">Masculina seria</option>
       </select>
 
-      <div className="text-sm font-semibold text-center whitespace-nowrap mb-1">
+      <div className="text-sm font-semibold text-left whitespace-nowrap mb-1">
         La IA improvisa el resto y le pone la voz:
       </div>
 
@@ -72,7 +72,7 @@ export default function MobileForm({
         </button>
       </div>
 
-      <div className="text-xs text-center mt-1 mb-2 whitespace-nowrap">
+      <div className="text-xs text-left mt-1 mb-2 whitespace-nowrap w-full">
         <label className="inline-flex items-center space-x-2">
           <input
             type="checkbox"
@@ -85,7 +85,7 @@ export default function MobileForm({
       </div>
 
       {errorTerminos && (
-        <div className="text-red-400 text-xs mt-1 text-center whitespace-nowrap">
+        <div className="text-red-400 text-xs mt-1 text-left whitespace-nowrap w-full">
           {errorTerminos}
         </div>
       )}
