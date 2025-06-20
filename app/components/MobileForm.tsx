@@ -1,114 +1,94 @@
 "use client";
-import React from "react";
-
-interface MobileFormProps {
-  phone: string;
-  setPhone: (val: string) => void;
-  message: string;
-  setMessage: (val: string) => void;
-  selectedVoice: string;
-  setSelectedVoice: (val: string) => void;
-  handleSend: () => void;
-  aceptaTerminos: boolean;
-  setAceptaTerminos: (val: boolean) => void;
-  errorTerminos: string;
-}
+import { useState } from "react";
 
 export default function MobileForm({
   phone,
   setPhone,
+  voiceOption,
+  setVoiceOption,
   message,
   setMessage,
-  selectedVoice,
-  setSelectedVoice,
   handleSend,
   aceptaTerminos,
   setAceptaTerminos,
   errorTerminos,
-}: MobileFormProps) {
+}: any) {
   return (
-    <section className="w-full h-screen bg-black text-white md:hidden flex flex-col justify-center items-center text-center overflow-hidden">
-      <div className="w-full" style={{ maxWidth: "543px" }}>
-        <h1 className="text-5xl font-extrabold mb-1 whitespace-nowrap">BromaIA</h1>
-        <h2 className="text-lg font-medium mb-6 whitespace-nowrap">
-          Bromas telefónicas generadas con IA.
-        </h2>
+    <section className="w-full h-screen bg-black text-white flex flex-col items-center justify-start pt-[28vh] px-4 overflow-hidden">
+      <h1 className="text-4xl font-extrabold mb-1 text-center whitespace-nowrap">
+        BromaIA
+      </h1>
 
-        <p className="text-sm mb-2 whitespace-nowrap">
-          Introduce ☎️ de la persona que quieras gastar la broma:
-        </p>
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+34 600000000"
-          className="w-full bg-[#ff7fa1] text-white placeholder-white px-4 py-3 rounded-full mb-4 text-center"
+      <h2 className="text-base font-medium mb-6 text-center whitespace-nowrap">
+        Bromas telefónicas generadas con IA.
+      </h2>
+
+      <div className="text-xs mb-2 text-center whitespace-nowrap">
+        Introduce ☎️ de la persona que quieras gastar la broma:
+      </div>
+      <input
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="+34 600000000"
+        className="w-full bg-[#fda4af] text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
+      />
+
+      <div className="text-xs mb-2 text-center whitespace-nowrap">
+        Elige el tipo de voz:
+      </div>
+      <select
+        value={voiceOption}
+        onChange={(e) => setVoiceOption(e.target.value)}
+        className="w-full bg-[#fda4af] text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 1rem center",
+          backgroundSize: "1rem",
+        }}
+      >
+        <option value="">Selecciona una voz</option>
+        <option value="voz1">Femenina joven</option>
+        <option value="voz2">Masculina seria</option>
+      </select>
+
+      <div className="text-xs mb-2 text-center whitespace-nowrap">
+        La IA improvisa el resto y le pone la voz:
+      </div>
+
+      <div className="relative w-full mb-3" style={{ height: "90px" }}>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="    Escribe tu broma."
+          className="w-full h-full bg-[#fda4af] text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none overflow-hidden whitespace-nowrap"
         />
-
-        <p className="text-sm mb-2 whitespace-nowrap">Elige el tipo de voz:</p>
-        <select
-          value={selectedVoice}
-          onChange={(e) => setSelectedVoice(e.target.value)}
-          className="w-full bg-[#ff7fa1] text-white px-4 py-3 rounded-full mb-4 text-center appearance-none"
+        <button
+          onClick={handleSend}
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
         >
-          <option disabled value="">Selecciona una voz</option>
-          <option value="voz1">Voz femenina</option>
-          <option value="voz2">Voz masculina</option>
-        </select>
+          ›
+        </button>
+      </div>
 
-        <p className="text-sm mb-2 whitespace-nowrap">
-          La IA improvisa el resto y le pone la voz:
-        </p>
-
-        <div className="relative w-full mb-4" style={{ height: "58px" }}>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Escribe tu broma."
-            className="w-full h-full bg-[#ff7fa1] text-white placeholder-white px-4 pr-10 py-3 rounded-full resize-none text-center leading-tight overflow-hidden whitespace-nowrap"
-            rows={1}
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-            }}
-          />
-          <button
-            onClick={handleSend}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
-          >
-            ➤
-          </button>
-          <style jsx>{`
-            textarea::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 mb-2 text-xs text-white whitespace-nowrap">
+      <div className="text-xs text-center mt-1 mb-2 whitespace-nowrap">
+        <label className="inline-flex items-center space-x-2">
           <input
             type="checkbox"
             checked={aceptaTerminos}
             onChange={(e) => setAceptaTerminos(e.target.checked)}
-            className="form-checkbox h-4 w-4 text-black bg-white rounded border-white"
+            className="form-checkbox accent-pink-400"
           />
-          <label className="text-left">
-            Acepto los{" "}
-            <a href="/terminos" className="underline" target="_blank">
-              términos
-            </a>{" "}
-            y la{" "}
-            <a href="/privacidad" className="underline" target="_blank">
-              política de privacidad
-            </a>
-            .
-          </label>
-        </div>
-
-        {errorTerminos && (
-          <p className="text-red-400 text-xs mb-1">{errorTerminos}</p>
-        )}
+          <span>Acepto los términos y la política de privacidad</span>
+        </label>
       </div>
+
+      {errorTerminos && (
+        <div className="text-red-400 text-xs mt-1 text-center whitespace-nowrap">
+          {errorTerminos}
+        </div>
+      )}
     </section>
   );
 }
