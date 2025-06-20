@@ -27,14 +27,16 @@ export default function MobileForm({
   errorTerminos,
 }: MobileFormProps) {
   return (
-    <section className="w-full h-screen bg-black text-white md:hidden flex flex-col justify-center items-center px-6 text-center">
-      <div className="w-full max-w-sm">
-        <h1 className="text-5xl font-extrabold mb-1">BromaIA</h1>
-        <h2 className="text-lg font-medium mb-6">
+    <section className="w-full h-screen bg-black text-white md:hidden flex flex-col justify-center items-center text-center overflow-hidden">
+      <div className="w-full" style={{ maxWidth: "543px" }}>
+        <h1 className="text-5xl font-extrabold mb-1 whitespace-nowrap">BromaIA</h1>
+        <h2 className="text-lg font-medium mb-6 whitespace-nowrap">
           Bromas telefónicas generadas con IA.
         </h2>
 
-        <p className="text-sm mb-2">Introduce ☎️ de la persona que quieras gastar la broma:</p>
+        <p className="text-sm mb-2 whitespace-nowrap">
+          Introduce ☎️ de la persona que quieras gastar la broma:
+        </p>
         <input
           type="tel"
           value={phone}
@@ -43,7 +45,7 @@ export default function MobileForm({
           className="w-full bg-[#ff7fa1] text-white placeholder-white px-4 py-3 rounded-full mb-4 text-center"
         />
 
-        <p className="text-sm mb-2">Elige el tipo de voz:</p>
+        <p className="text-sm mb-2 whitespace-nowrap">Elige el tipo de voz:</p>
         <select
           value={selectedVoice}
           onChange={(e) => setSelectedVoice(e.target.value)}
@@ -54,22 +56,27 @@ export default function MobileForm({
           <option value="voz2">Voz masculina</option>
         </select>
 
-        <p className="text-sm mb-2">La IA improvisa el resto y le pone la voz:</p>
+        <p className="text-sm mb-2 whitespace-nowrap">
+          La IA improvisa el resto y le pone la voz:
+        </p>
 
-        <div className="relative w-full mb-4">
+        <div className="relative w-full mb-4" style={{ height: "58px" }}>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu broma."
-            className="w-full bg-[#ff7fa1] text-white placeholder-white px-4 py-3 pr-10 rounded-full resize-none text-center overflow-hidden whitespace-nowrap"
+            className="w-full h-full bg-[#ff7fa1] text-white placeholder-white px-4 pr-10 py-3 rounded-full resize-none text-center leading-tight overflow-hidden whitespace-nowrap"
             rows={1}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
           />
           <button
             onClick={handleSend}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black rounded-full w-7 h-7 flex items-center justify-center"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
           >
-            <span className="text-white text-sm">➤</span>
+            ➤
           </button>
           <style jsx>{`
             textarea::-webkit-scrollbar {
@@ -78,7 +85,7 @@ export default function MobileForm({
           `}</style>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mb-2 text-xs text-white">
+        <div className="flex items-center justify-center gap-2 mb-2 text-xs text-white whitespace-nowrap">
           <input
             type="checkbox"
             checked={aceptaTerminos}
