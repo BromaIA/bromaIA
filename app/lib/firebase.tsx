@@ -1,6 +1,7 @@
 // lib/firebase.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCGn_8iumyisftfCBbwCpXN3IcUxgtriTA",
@@ -11,7 +12,9 @@ const firebaseConfig = {
   appId: "1:801749216357:web:494ef682438c7992c7ea8c",
 };
 
-// ✅ Evita inicialización múltiple (importante en desarrollo)
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export { auth, db };

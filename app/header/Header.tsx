@@ -1,6 +1,26 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../lib/firebase";
+
+interface HeaderProps {
+  reset: () => void;
+  showSection: (section: string) => void;
+  userName: string | null;
+  setUserName: (name: string | null) => void;
+  phone: string;
+  setPhone: (value: string) => void;
+  otp: string;
+  setOtp: (value: string) => void;
+  confirmationResult: any;
+  setConfirmationResult: (value: any) => void;
+  smsError: string;
+  setSmsError: (msg: string) => void;
+  iniciarVerificacion: () => void;
+  verificarCodigo: () => void;
+  credits: number;
+  setCredits: (n: number) => void;
+}
 
 export default function Header({
   reset,
@@ -19,7 +39,7 @@ export default function Header({
   verificarCodigo,
   credits,
   setCredits,
-}: any) {
+}: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -45,7 +65,7 @@ export default function Header({
   }, []);
 
   const handleMenuClick = (section: string) => {
-    showSection(section);
+    if (showSection) showSection(section);
     setMenuOpen(false);
   };
 
@@ -54,9 +74,42 @@ export default function Header({
     setCredits(0);
     localStorage.removeItem("userName");
     localStorage.removeItem("bromaCredits");
+    setShowProfileMenu(false);
   };
 
-  // Detectar si vuelve de Stripe (success=1, 3, 5)
+  const iniciarSesion = async () => {
+    const cleanedPhone = phone.replace(/\s+/g, "");
+    const finalPhone = cleanedPhone.startsWith("+34")
+      ? cleanedPhone
+      : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
+
+    if (!finalPhone || finalPhone.length < 10) {
+      setSmsError("Introduce un número válido.");
+      return;
+    }
+
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => {},
+        });
+      }
+
+      const appVerifier = window.recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, finalPhone, appVerifier);
+      if (!result) throw new Error("Error al obtener el código");
+
+      setConfirmationResult(result);
+      setSmsError("✅ Código enviado.");
+    } catch (error: any) {
+      const mensaje = error.message?.includes("auth/too-many-requests")
+        ? "Demasiados intentos. Espera unos minutos."
+        : "Error al enviar SMS.";
+      setSmsError(`❌ ${mensaje}`);
+    }
+  };
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const success = searchParams.get("success");
@@ -73,32 +126,12 @@ export default function Header({
     }
   }, []);
 
-  // Función para abrir Stripe Checkout según cantidad
-  const handleComprarPack = async (cantidad: number) => {
-    try {
-      const res = await fetch("/api/checkout_sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cantidad }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("No se pudo iniciar el pago.");
-      }
-    } catch (err) {
-      console.error("Error al crear la sesión de Stripe:", err);
-      alert("Hubo un error al procesar el pago.");
-    }
-  };
-
   return (
-    <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-40 bg-black shadow-lg">
+    <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-50 bg-black shadow-lg">
       <div className="flex items-center gap-3 relative">
         <button
           onClick={() => {
-            reset();
+            reset?.();
             window.location.hash = "#pantalla1";
           }}
           className="text-white font-bold text-lg"
@@ -106,52 +139,46 @@ export default function Header({
           BromaIA
         </button>
 
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-white text-2xl"
-        >
+        <button onClick={() => setMenuOpen(!menuOpen)} className="text-white text-2xl">
           ☰
         </button>
 
         {menuOpen && (
-          <nav
-            ref={menuRef}
-            className="absolute top-full left-0 mt-2 bg-black border border-white/20 rounded-lg p-4 w-64 text-sm z-50 shadow-lg animate-slide-down"
-          >
-            <ul className="flex flex-col gap-2 text-left">
-              {[
-                ["¿Qué es BromaIA?", "que-es-bromaia"],
-                ["¿Cómo funciona BromaIA?", "como-funciona-bromaia"],
-                ["Ejemplos de bromas IA", "ejemplos-de-bromaia"],
-                ["Comprar bromas", "comprar-bromas"],
-                ["Preguntas frecuentes (FAQ)", "faq"],
-                ["Términos y condiciones", "terminos-y-condiciones"],
-                ["Política de privacidad", "politica-de-privacidad"],
-                ["Política de cookies", "politica-de-cookies"],
-                ["Aviso legal", "aviso-legal"],
-                ["Contacto", "contacto"],
-              ].map(([label, slug], i) => (
-                <li key={i}>
-                  <button
-                    onClick={() => handleMenuClick(slug)}
-                    className="text-left text-white hover:underline w-full"
-                  >
-                    {label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <div className="relative">
+            <nav
+              ref={menuRef}
+              className="absolute top-full left-0 mt-2 bg-black border border-white/20 rounded-lg p-4 w-64 text-sm z-50 shadow-lg animate-slide-down overflow-y-scroll pr-2 max-h-[70vh]"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              <ul className="flex flex-col gap-2 text-left">
+                {[
+                  ["¿Qué es BromaIA?", "que-es-bromaia"],
+                  ["¿Cómo funciona BromaIA?", "como-funciona-bromaia"],
+                  ["Ejemplos de bromas IA", "ejemplos-de-bromaia"],
+                  ["Comprar bromas", "comprar-bromas"],
+                  ["Preguntas frecuentes (FAQ)", "faq"],
+                  ["Términos y condiciones", "terminos-y-condiciones"],
+                  ["Política de privacidad", "politica-de-privacidad"],
+                  ["Política de cookies", "politica-de-cookies"],
+                  ["Aviso legal", "aviso-legal"],
+                  ["Contacto", "contacto"],
+                ].map(([label, slug], i) => (
+                  <li key={i}>
+                    <button onClick={() => handleMenuClick(slug)} className="text-left text-white hover:underline w-full">
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <div className="absolute top-0 right-0 h-full w-[6px] bg-black z-[999]" />
+          </div>
         )}
       </div>
 
       {userName ? (
         <div className="flex items-center gap-4 text-sm">
-          <div className="text-white">
-            {credits} broma{credits !== 1 && "s"}
-          </div>
-
-          {/* Botón + para abrir sección de compra */}
+          <div className="text-white">{credits} broma{credits !== 1 && "s"}</div>
           <button
             onClick={() => showSection("comprar-bromas")}
             className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
@@ -159,7 +186,6 @@ export default function Header({
           >
             +
           </button>
-
           <div className="relative" ref={profileRef}>
             <button
               className="w-8 h-8 rounded-full bg-white text-black font-bold flex items-center justify-center"
@@ -190,16 +216,10 @@ export default function Header({
         </div>
       ) : (
         <div className="flex gap-4 text-sm">
-          <button
-            onClick={() => alert("Aquí iría la lógica de inicio de sesión")}
-            className="text-white hover:underline"
-          >
+          <button onClick={() => setShowRegister(true)} className="text-white hover:underline">
             Iniciar sesión
           </button>
-          <button
-            onClick={() => setShowRegister(true)}
-            className="text-white hover:underline"
-          >
+          <button onClick={() => setShowRegister(true)} className="text-white hover:underline">
             Registrarse
           </button>
         </div>
@@ -229,7 +249,7 @@ export default function Header({
           )}
           {!confirmationResult ? (
             <button
-              onClick={iniciarVerificacion}
+              onClick={iniciarSesion}
               className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded w-full"
             >
               Enviar código

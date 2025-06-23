@@ -1,51 +1,83 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
-export const ChatInterface = () => {
-const [messages, setMessages] = useState([
-{ role: 'assistant', text: '¡Hola! ¿Qué broma quieres que haga?' }
-])
-const [input, setInput] = useState('')
-
-const handleSend = () => {
-if (!input.trim()) return
-setMessages([...messages, { role: 'user', text: input }])
-setTimeout(() => {
-setMessages(prev => [...prev, { role: 'assistant', text: '¡Hecho! Llamando ahora mismo 📞' }])
-}, 1000)
-setInput('')
+type ChatMessage = {
+  role: 'user' | 'assistant'
+  text: string
 }
 
-return (
-<div className="h-screen w-screen bg-black text-white flex flex-col">
-<div className="flex-1 overflow-y-auto p-4 space-y-3">
-{messages.map((msg, i) => (
-<div
-key={i}
-className={`max-w-[75%] p-3 rounded-lg ${
-msg.role === 'user' ? 'bg-pink-400 self-end' : 'bg-gray-700 self-start'
-}`}
->
-{msg.text}
-</div>
-))}
-</div>
+export const ChatInterface = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', text: '¡Hola! ¿Qué broma quieres que haga?' }
+  ])
+  const [input, setInput] = useState('')
 
-<div className="p-4 flex gap-2">
-<input
-type="text"
-placeholder="Escribe tu mensaje..."
-className="flex-1 p-3 rounded-md bg-gray-800 text-white"
-value={input}
-onChange={(e) => setInput(e.target.value)}
-/>
-<button
-onClick={handleSend}
-className="bg-pink-500 px-4 rounded-md"
->
-Enviar
-</button>
-</div>
-</div>
-)
+  const chatRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Scroll automático al último mensaje
+    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages])
+
+  const handleSend = () => {
+    const trimmed = input.trim()
+    if (!trimmed) return
+
+    const newMessages = [...messages, { role: 'user', text: trimmed }]
+    setMessages(newMessages)
+    setInput('')
+
+    const userMessages = newMessages.filter((msg) => msg.role === 'user')
+    if (userMessages.length === 3) {
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', text: 'Para hacer la broma gratis tienes que estar registrado.' }
+        ])
+      }, 800)
+    }
+  }
+
+  return (
+    <div className="h-screen w-screen bg-black text-white flex flex-col overflow-hidden">
+      {/* Zona scrollable solo para el chat */}
+      <div
+        ref={chatRef}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-2 space-y-3"
+      >
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`max-w-[75%] px-4 py-2 rounded-xl text-sm break-words whitespace-pre-wrap ${
+              msg.role === 'user'
+                ? 'bg-pink-400 text-white self-end ml-auto'
+                : 'bg-white text-black self-start mr-auto'
+            }`}
+          >
+            {msg.text}
+          </div>
+        ))}
+      </div>
+
+      {/* Cuadro fijo abajo */}
+      <div className="w-full px-4 py-3 bg-black border-t border-white/10">
+        <div className="relative w-full h-[45px]">
+          <input
+            type="text"
+            placeholder="Escribe tu mensaje..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            className="w-full h-full bg-pink-400 text-white px-4 pr-8 rounded-lg text-sm placeholder-white focus:outline-none"
+          />
+          <button
+            onClick={handleSend}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-xs"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
