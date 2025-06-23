@@ -15,17 +15,17 @@ export const ChatInterface = () => {
   const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
+    chatRef.current?.scrollTo({
+      top: chatRef.current.scrollHeight,
+      behavior: 'smooth'
+    })
   }, [messages])
 
   const handleSend = () => {
     const trimmed = input.trim()
     if (!trimmed) return
 
-    const newMessages: ChatMessage[] = [
-      ...messages,
-      { role: 'user', text: trimmed }
-    ]
+    const newMessages: ChatMessage[] = [...messages, { role: 'user', text: trimmed }]
     setMessages(newMessages)
     setInput('')
 
@@ -34,7 +34,10 @@ export const ChatInterface = () => {
       setTimeout(() => {
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', text: 'Para hacer la broma gratis tienes que estar registrado.' }
+          {
+            role: 'assistant',
+            text: 'Para hacer la broma gratis tienes que estar registrado.'
+          }
         ])
       }, 800)
     }
