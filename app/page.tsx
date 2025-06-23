@@ -7,7 +7,9 @@ declare global {
 
 import { useState, useRef, useEffect } from "react";
 import { auth, db } from "./lib/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, Auth } from "firebase/auth";
+
+
 import { doc, setDoc } from "firebase/firestore";
 import Header from "./header/Header";
 import MobileForm from "./components/MobileForm";
@@ -247,60 +249,47 @@ const handleSend = async () => {
     }
   };
 
-  const iniciarVerificacion = async () => {
-    const cleanedPhone = phone.replace(/\s+/g, "");
-    const finalPhone = cleanedPhone.startsWith("+34")
-      ? cleanedPhone
-      : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
+const iniciarVerificacion = async () => {
+  if (typeof window === "undefined") return;
 
-    if (!finalPhone || finalPhone.length < 10) {
-      setSmsError("Introduce un número de teléfono válido.");
-      return;
+  const cleanedPhone = phone.replace(/\s+/g, "");
+  const finalPhone = cleanedPhone.startsWith("+34")
+    ? cleanedPhone
+    : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
+
+  const container = document.getElementById("recaptcha-container");
+  if (!container) {
+    setSmsError("Error interno: reCAPTCHA no encontrado");
+    return;
+  }
+
+  try {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
     }
 
-    const containerExists = typeof window !== 'undefined' && document.getElementById("recaptcha-container");
-    if (!containerExists) {
-      setSmsError("Error interno: recaptcha no encontrado");
-      return;
-    }
-
-    try {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-      }
-
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: () => {},
-          "expired-callback": () => {
-            setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
-          },
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {},
+        "expired-callback": () => {
+          setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
         },
-        auth
-      );
+      },
+      auth
+    );
 
-      const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
+    const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
+    setConfirmationResult(result);
+    setSmsError("✅ Código enviado. Revisa tu SMS.");
+  } catch (error) {
+    console.error("Error al enviar SMS:", error);
+    setSmsError("❌ No se pudo enviar el SMS. Inténtalo más tarde.");
+  }
+};
 
-      setConfirmationResult(result);
-      setSmsError("✅ Código enviado. Revisa tu SMS.");
-    } catch (error: any) {
-      console.error("Error al enviar SMS:", error);
-      let mensaje = "No se pudo enviar el SMS. Inténtalo más tarde.";
-      if (error.code === 'auth/too-many-requests') {
-        mensaje = "Demasiados intentos. Espera unos minutos.";
-      } else if (error.code === 'auth/invalid-phone-number') {
-        mensaje = "Número de teléfono inválido.";
-      }
-      setSmsError(`❌ ${mensaje}`);
 
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    }
-  };
 
   console.log("Sección visible:", visibleSection);
   console.log("SECCIÓN ACTIVA:", visibleSection);
@@ -326,7 +315,8 @@ const handleSend = async () => {
         credits={credits}
         setCredits={setCredits}
       />
-      <div id="recaptcha-container" className="hidden" />
+     <div id="recaptcha-container"></div>
+
 
       {visibleSection === "que-es-bromaia" && (
         <div className="relative">
@@ -920,51 +910,61 @@ const handleSend = async () => {
         )}
 
 {started && visibleSection === null && (
-  <section className="w-full max-w-xl mx-auto min-h-screen flex flex-col bg-black text-white relative overflow-hidden">
-    
-    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 space-y-4 scrollbar-hide">
-      {/* Mensajes iniciales */}
+  <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
+    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-20 space-y-4">
       {initialMessages[0] && (
-        <div className="flex justify-end">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%] text-sm">
+        <div className="flex justify-end w-full">
+          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
             📱 Teléfono: {initialMessages[0]}
           </div>
         </div>
       )}
       {initialMessages[1] && (
-        <div className="flex justify-end">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%] text-sm">
-            🗣️ Voz: {initialMessages[1]}
+        <div className="flex justify-end w-full">
+          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
+            🗣️ Tipo de voz: {initialMessages[1]}
           </div>
         </div>
       )}
       {initialMessages[2] && (
-        <div className="flex justify-end">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%] text-sm">
+        <div className="flex justify-end w-full">
+          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
             ✉️ Mensaje: {initialMessages[2]}
           </div>
         </div>
       )}
 
-      {/* Conversación dinámica */}
-      {chat.map((msg, idx) => (
-        <div key={idx} className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-          <div className={`px-4 py-2 rounded-lg max-w-[75%] text-sm whitespace-pre-line break-words ${msg.role === "user" ? "bg-[#f472b6] text-white" : "bg-white text-black"}`}>
+      {chat.map((msg, index) => (
+        <div key={index} className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`${
+              msg.role === "user"
+                ? "bg-[#f472b6] text-white"
+                : "bg-white text-black"
+            } px-4 py-2 rounded-lg max-w-[75%]`}
+          >
             {msg.content}
           </div>
         </div>
       ))}
 
+      {processing && (
+        <div className="flex justify-start w-full">
+          <div className="bg-white text-black px-4 py-2 rounded-lg max-w-[75%]">
+            Procesando...
+          </div>
+        </div>
+      )}
+
       <div ref={chatEndRef} />
     </div>
 
-    {/* Cuadro rosa fijo abajo */}
-    <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-black">
+    <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-gray-800">
       <div className="max-w-xl mx-auto relative">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+          onKeyDown={handleKeyDown}
           placeholder="Escribe tu mensaje..."
           className="w-full bg-[#f472b6] text-white placeholder-white rounded-full px-4 py-2 pr-10 resize-none focus:outline-none"
           rows={1}
@@ -979,8 +979,7 @@ const handleSend = async () => {
     </div>
   </section>
 )}
-
-
+<div id="recaptcha-container" style={{ display: "none" }}></div>
 
     </div>
   </>
