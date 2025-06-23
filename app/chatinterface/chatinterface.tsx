@@ -15,7 +15,6 @@ export const ChatInterface = () => {
   const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Scroll automático al último mensaje
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
@@ -23,7 +22,10 @@ export const ChatInterface = () => {
     const trimmed = input.trim()
     if (!trimmed) return
 
-    const newMessages = [...messages, { role: 'user', text: trimmed }]
+    const newMessages: ChatMessage[] = [
+      ...messages,
+      { role: 'user', text: trimmed }
+    ]
     setMessages(newMessages)
     setInput('')
 
@@ -40,7 +42,6 @@ export const ChatInterface = () => {
 
   return (
     <div className="h-screen w-screen bg-black text-white flex flex-col overflow-hidden">
-      {/* Zona scrollable solo para el chat */}
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-2 space-y-3"
@@ -59,7 +60,6 @@ export const ChatInterface = () => {
         ))}
       </div>
 
-      {/* Cuadro fijo abajo */}
       <div className="w-full px-4 py-3 bg-black border-t border-white/10">
         <div className="relative w-full h-[45px]">
           <input
