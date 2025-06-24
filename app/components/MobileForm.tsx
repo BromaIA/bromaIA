@@ -73,7 +73,7 @@ export default function MobileForm({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Escribe tu broma."
-          className="w-full bg-pink-400/90 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
+          className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
           rows={2}
         />
         <button
