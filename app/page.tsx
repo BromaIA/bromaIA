@@ -7,7 +7,7 @@ declare global {
 
 import { useState, useRef, useEffect } from "react";
 import { auth, db } from "./lib/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber, Auth } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 
 import { doc, setDoc } from "firebase/firestore";
@@ -249,25 +249,33 @@ const handleSend = async () => {
     }
   };
 
-const iniciarVerificacion = async () => {
-  if (typeof window === "undefined") return;
+  
 
+const iniciarVerificacion = async () => {
   const cleanedPhone = phone.replace(/\s+/g, "");
   const finalPhone = cleanedPhone.startsWith("+34")
     ? cleanedPhone
     : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
 
-  const container = document.getElementById("recaptcha-container");
-  if (!container) {
-    setSmsError("Error interno: reCAPTCHA no encontrado");
+  if (!finalPhone || finalPhone.length < 10) {
+    setSmsError("Introduce un número de teléfono válido.");
+    return;
+  }
+
+  const containerExists = typeof window !== 'undefined' && document.getElementById("recaptcha-container");
+  if (!containerExists) {
+    setSmsError("Error interno: reCAPTCHA no encontrado.");
     return;
   }
 
   try {
+    // Si ya existe, límpialo antes
     if (window.recaptchaVerifier) {
       window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
     }
 
+    // Recreamos el reCAPTCHA (opcional pero más seguro)
     window.recaptchaVerifier = new RecaptchaVerifier(
       "recaptcha-container",
       {
@@ -280,14 +288,23 @@ const iniciarVerificacion = async () => {
       auth
     );
 
+    
+
     const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
     setConfirmationResult(result);
     setSmsError("✅ Código enviado. Revisa tu SMS.");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al enviar SMS:", error);
-    setSmsError("❌ No se pudo enviar el SMS. Inténtalo más tarde.");
+    let mensaje = "No se pudo enviar el SMS. Inténtalo más tarde.";
+    if (error.code === "auth/too-many-requests") {
+      mensaje = "Demasiados intentos. Espera unos minutos.";
+    } else if (error.code === "auth/invalid-phone-number") {
+      mensaje = "Número de teléfono inválido.";
+    }
+    setSmsError(`❌ ${mensaje}`);
   }
 };
+
 
 
 
@@ -315,7 +332,9 @@ const iniciarVerificacion = async () => {
         credits={credits}
         setCredits={setCredits}
       />
+
      <div id="recaptcha-container"></div>
+
 
 
       {visibleSection === "que-es-bromaia" && (
