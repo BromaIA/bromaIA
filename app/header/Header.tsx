@@ -44,20 +44,20 @@ export default function Header({
   const [showRegister, setShowRegister] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const menuRef = useRef<HTMLDivElement>(null);
   const registerRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
       if (registerRef.current && !registerRef.current.contains(e.target as Node)) {
         setShowRegister(false);
       }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
-      }
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -65,7 +65,7 @@ export default function Header({
   }, []);
 
   const handleMenuClick = (section: string) => {
-    if (showSection) showSection(section);
+    showSection(section);
     setMenuOpen(false);
   };
 
@@ -128,7 +128,7 @@ export default function Header({
 
   return (
     <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-50 bg-black shadow-lg">
-      <div className="flex items-center gap-3 relative">
+      <div className="flex items-center gap-3 relative" ref={menuRef}>
         <button
           onClick={() => {
             reset?.();
@@ -144,10 +144,9 @@ export default function Header({
         </button>
 
         {menuOpen && (
-          <div className="relative">
+          <div className="absolute top-full left-0 mt-2 z-50">
             <nav
-              ref={menuRef}
-              className="absolute top-full left-0 mt-2 bg-black border border-white/20 rounded-lg p-4 w-64 text-sm z-50 shadow-lg animate-slide-down overflow-y-scroll pr-2 max-h-[70vh]"
+              className="bg-black border border-white/20 rounded-lg p-4 w-64 text-sm shadow-lg animate-slide-down overflow-y-scroll pr-2 max-h-[70vh]"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               <ul className="flex flex-col gap-2 text-left">
@@ -164,14 +163,16 @@ export default function Header({
                   ["Contacto", "contacto"],
                 ].map(([label, slug], i) => (
                   <li key={i}>
-                    <button onClick={() => handleMenuClick(slug)} className="text-left text-white hover:underline w-full">
+                    <button
+                      onClick={() => handleMenuClick(slug)}
+                      className="text-left text-white hover:underline w-full"
+                    >
                       {label}
                     </button>
                   </li>
                 ))}
               </ul>
             </nav>
-            <div className="absolute top-0 right-0 h-full w-[6px] bg-black z-[999]" />
           </div>
         )}
       </div>

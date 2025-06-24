@@ -385,6 +385,52 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
         </div>
       )}
 
+      {visibleSection === "como-funciona-bromaia" && (
+  <div className="relative">
+    <section
+      className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
+      style={{
+        maxHeight: "calc(100vh - 5rem)",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        overflowAnchor: "none",
+      }}
+    >
+      <style jsx>{`
+        section::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
+      <h2 className="text-3xl font-bold text-center mb-10">¿Cómo funciona BromaIA?</h2>
+      <div className="text-left text-base space-y-6 leading-relaxed">
+        <p>
+          En <strong>BromaIA</strong>, tú escribes el mensaje o la situación que quieres convertir en una broma. Puedes ser tan creativo como quieras: nuestro asistente se encargará de interpretarlo.
+        </p>
+        <p>
+          Una vez introducido el texto, eliges el tipo de voz (masculina o femenina) y el número al que se hará la llamada. La inteligencia artificial procesa tu idea y la transforma en una conversación espontánea, fluida y con voz natural.
+        </p>
+        <ol className="list-decimal list-inside ml-4 space-y-2">
+          <li>Introduces el número al que se va a llamar. </li>
+          <li>Seleccionas el tipo de voz que quieres usar.</li>
+          <li>Escribes el mensaje o idea de la broma.</li>
+        </ol>
+        <p>
+          La llamada se realiza en tiempo real y puede grabarse al instante. Así podrás escucharla, compartirla o revivirla cuando quieras. Todo desde el navegador, sin instalar nada.
+        </p>
+        <p>
+          El sistema ajusta automáticamente el tono, las pausas y la entonación para que la broma suene realista, natural y sorprendentemente auténtica.
+        </p>
+        <p className="mt-4 italic text-center text-pink-400 text-lg">
+          Tú escribes la idea. La IA la convierte en risa.
+        </p>
+      </div>
+    </section>
+    <div className="absolute top-0 right-0 w-[8px] h-full bg-black z-[999] pointer-events-none" />
+  </div>
+)}
+
+
       {visibleSection === "ejemplos-de-bromaia" && (
         <section
           className="max-w-xl mx-auto px-4 pt-24 pb-6 text-white overflow-y-auto"
