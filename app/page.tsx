@@ -281,7 +281,30 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
 );
 
 
-    
+    const enviarFormularioContacto = async (formulario: {
+  nombre: string;
+  email: string;
+  mensaje: string;
+}) => {
+  try {
+    const res = await fetch("/api/contacto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formulario),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Mensaje enviado correctamente.");
+    } else {
+      alert("Error al enviar el mensaje: " + data.error);
+    }
+  } catch (error) {
+    console.error("Error al enviar el mensaje:", error);
+    alert("Error inesperado al enviar el mensaje.");
+  }
+};
+
 
     const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
     setConfirmationResult(result);
@@ -739,66 +762,95 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
         </section>
       )}
 
-      {visibleSection === "contacto" && (
-        <section
-          className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
-          style={{
-            maxHeight: "calc(100vh - 5rem)",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            overflowAnchor: "none",
-          }}
-        >
-          <style jsx>{`
-            section::-webkit-scrollbar {
-              display: none;
+{visibleSection === "contacto" && (
+  <div className="relative">
+    <section
+      className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
+      style={{
+        maxHeight: "calc(100vh - 5rem)",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        overflowAnchor: "none",
+      }}
+    >
+      <style jsx>{`
+        section::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
+      <h2 className="text-3xl font-bold text-center mb-10">Contacto</h2>
+
+      <p className="text-center mb-6">
+        Si tienes dudas, sugerencias o quieres escribirnos, puedes enviarnos un mensaje usando este formulario o escribir directamente a <strong>contacto@bromaia.com</strong>.
+      </p>
+
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const form = e.target as HTMLFormElement;
+          const data = new FormData(form);
+
+          try {
+            const res = await fetch("https://formspree.io/f/mdkzzdjb", {
+              method: "POST",
+              body: data,
+              headers: {
+                Accept: "application/json",
+              },
+            });
+
+            if (res.ok) {
+              form.reset();
+              const success = document.getElementById("mensaje-enviado");
+              if (success) success.style.display = "block";
             }
-          `}</style>
+          } catch (error) {
+            console.error("Error enviando formulario:", error);
+          }
+        }}
+        className="space-y-4"
+      >
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Tu nombre"
+          required
+          className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Tu correo electrónico"
+          required
+          className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
+        />
+        <textarea
+          name="mensaje"
+          placeholder="Escribe tu mensaje"
+          required
+          rows={4}
+          className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="w-full bg-pink-400 hover:bg-pink-500 text-white py-2 rounded font-semibold transition"
+        >
+          Enviar mensaje
+        </button>
+        <p
+          id="mensaje-enviado"
+          className="text-green-400 text-center mt-4 hidden"
+        >
+          ✅ Tu mensaje se ha enviado con éxito.
+        </p>
+      </form>
+    </section>
 
-          <h2 className="text-3xl font-bold text-center mb-10">Contacto</h2>
+    <div className="absolute top-0 right-0 w-[8px] h-full bg-black z-[999] pointer-events-none" />
+  </div>
+)}
 
-          <p className="text-center mb-6">
-            Si tienes dudas, sugerencias o quieres escribirnos, puedes enviarnos un mensaje usando este formulario o escribir directamente a <strong>contacto@bromaia.com</strong>.
-          </p>
-
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setMensajeEnviado(true);
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Tu nombre"
-              required
-              className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
-            />
-            <input
-              type="email"
-              placeholder="Tu correo electrónico"
-              required
-              className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
-            />
-            <textarea
-              placeholder="Escribe tu mensaje"
-              required
-              rows={4}
-              className="w-full p-3 rounded bg-pink-400 placeholder-white text-white focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="w-full bg-pink-400 hover:bg-pink-500 text-white py-2 rounded font-semibold transition"
-            >
-              Enviar mensaje
-            </button>
-
-            {mensajeEnviado && (
-              <p className="text-green-400 text-center mt-4">✅ Tu mensaje se ha enviado con éxito.</p>
-            )}
-          </form>
-        </section>
-      )}
 
       {visibleSection === "faq" && (
   <div className="relative">
