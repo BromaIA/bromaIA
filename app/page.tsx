@@ -275,18 +275,18 @@ const iniciarVerificacion = async () => {
       window.recaptchaVerifier = null;
     }
 
-    // Recreamos el reCAPTCHA (opcional pero más seguro)
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: () => {},
-        "expired-callback": () => {
-          setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
-        },
-      },
-      auth
-    );
+window.recaptchaVerifier = new (RecaptchaVerifier as any)(
+  auth,
+  "recaptcha-container",
+  {
+    size: "invisible",
+    callback: () => {},
+    "expired-callback": () => {
+      setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
+    },
+  }
+);
+
 
     
 
