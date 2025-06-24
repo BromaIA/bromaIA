@@ -5,19 +5,28 @@ declare global {
   }
 }
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+
 import { auth, db } from "./lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
+import { subirAudioAFirebase } from "./lib/uploadAudio"; // Asegúrate de importar esto arriba
 
 
-import { doc, setDoc } from "firebase/firestore";
+
 import Header from "./header/Header";
 import MobileForm from "./components/MobileForm";
+
+
 
 export default function Home() {
   const [message, setMessage] = useState("");
   const [voiceOption, setVoiceOption] = useState("");
-  const [chat, setChat] = useState<{ role: "user" | "ai"; content: string }[]>([]);
+const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.ReactNode }[]>([]);
+
+
+
   const [started, setStarted] = useState(false);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
   const [processing, setProcessing] = useState<boolean>(false);
@@ -34,7 +43,59 @@ export default function Home() {
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [smsError, setSmsError] = useState("");
   const [bromasDisponibles, setBromasDisponibles] = useState<number>(0);
+
+const [mostrarHistorial, setMostrarHistorial] = useState(false);
+
   
+  const [historial, setHistorial] = useState<any[]>([]);
+useEffect(() => {
+  const cargarHistorial = async () => {
+    if (!userName) return;
+
+    try {
+      const q = query(collection(db, "historial"));
+      const snapshot = await getDocs(q);
+
+      const data = snapshot.docs
+        .map(doc => doc.data())
+        .filter(item => item.phone === userName)
+        .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+      setHistorial(data);
+    } catch (error) {
+      console.error("Error cargando historial:", error);
+    }
+  };
+
+  if (visibleSection === "historial") {
+    cargarHistorial();
+  }
+}, [visibleSection, userName]);
+
+useEffect(() => {
+  const cargarHistorial = async () => {
+    if (!userName) return;
+
+    try {
+      const q = query(collection(db, "historial"));
+      const snapshot = await getDocs(q);
+
+      const data = snapshot.docs
+        .map(doc => doc.data())
+        .filter(item => item.phone === userName)
+        .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+      setHistorial(data);
+    } catch (error) {
+      console.error("Error cargando historial:", error);
+    }
+  };
+
+  if (visibleSection === "historial") {
+    cargarHistorial();
+  }
+}, [visibleSection, userName]);
+
 
   useEffect(() => {
     if (
@@ -70,14 +131,32 @@ export default function Home() {
   try {
     const result = await confirmationResult.confirm(otp);
     const user = result.user;
-    await setDoc(doc(db, "users", user.uid), {
-      phoneNumber: user.phoneNumber,
-      credits: 3,
-    });
-    setCredits(3);
+
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      // Usuario nuevo: damos 1 broma
+      await setDoc(userRef, {
+        phoneNumber: user.phoneNumber,
+        credits: 1,
+      });
+
+      setCredits(1);
+      localStorage.setItem("bromaCredits", "1");
+    } else {
+      // Usuario existente: mantenemos sus créditos
+      const data = userSnap.data();
+      const existingCredits = data?.credits ?? 0;
+
+      setCredits(existingCredits);
+      localStorage.setItem("bromaCredits", existingCredits.toString());
+    }
+
+    // Guardamos el nombre
     setUserName(user.phoneNumber);
     localStorage.setItem("userName", user.phoneNumber);
-    localStorage.setItem("bromaCredits", "3");
+
     setSmsError("✅ Verificación exitosa. ¡Bienvenido!");
   } catch (error) {
     console.error("Error al verificar código:", error);
@@ -148,8 +227,7 @@ const reset = () => {
     }
   }, []);
 
-
-
+  
 const handleSend = async () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
@@ -160,7 +238,6 @@ const handleSend = async () => {
       alert("Faltan datos por rellenar");
       return;
     }
-
     if (!aceptaTerminos) {
       setErrorTerminos("Debes aceptar los términos para continuar.");
       return;
@@ -177,14 +254,13 @@ const handleSend = async () => {
   setMessage("");
   setProcessing(true);
 
-  const responder = (texto: string) => {
-    setChat((prev) => [...prev, { role: "ai", content: texto }]);
+  const responder = (contenido: React.ReactNode) => {
+    setChat((prev) => [...prev, { role: "ai", content: contenido }]);
     setProcessing(false);
     setTimeout(() => {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
-
 
   if (!userName) {
     responder("⚠️ Debes registrarte para hacer la broma.");
@@ -197,7 +273,7 @@ const handleSend = async () => {
   }
 
   try {
-
+    // Generar la respuesta con OpenAI
     const res = await fetch("/api/openai-response", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -207,20 +283,49 @@ const handleSend = async () => {
     const data = await res.json();
     const respuestaIA = data?.respuestaIA || "No se pudo generar la broma";
 
-    responder(respuestaIA);
-
-
-    await fetch("/api/iniciar-llamada", {
+    // 🔊 Iniciar llamada (simulada o real con Retell)
+    const llamadaRes = await fetch("/api/iniciar-llamada", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telefono: phone, voz: voiceOption, mensaje: respuestaIA }),
     });
 
+    const llamadaData = await llamadaRes.json();
+    const audioUrl = llamadaData.audioUrl || "/audios/broma-ejemplo.mp3";
 
+    // Mostrar el audio generado en el chat
+    const audioBubble = (
+      <div className="flex flex-col gap-2">
+        <audio controls src={audioUrl} className="w-full rounded-lg" />
+        <div className="flex gap-3 text-sm">
+          <a
+            href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${window.location.origin}${audioUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-green-400"
+          >
+            Compartir por WhatsApp
+          </a>
+          <a
+            href={audioUrl}
+            download
+            className="underline text-blue-400"
+          >
+            Descargar audio
+          </a>
+        </div>
+      </div>
+    );
+
+    responder(audioBubble);
+
+    // Restar 1 crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
+
   } catch (error) {
+    console.error("❌ Error en handleSend:", error);
     responder("❌ Error técnico. Inténtalo de nuevo.");
   }
 };
@@ -263,7 +368,7 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
 );
 
 
-    const enviarFormularioContacto = async (formulario: {
+const enviarFormularioContacto = async (formulario: {
   nombre: string;
   email: string;
   mensaje: string;
@@ -683,6 +788,47 @@ const comprarBroma = async (cantidad: number) => {
           </div>
         </section>
       )}
+
+{visibleSection === "historial" && (
+  <div className="w-full bg-black text-white p-6 min-h-screen">
+    <h2 className="text-xl font-bold mb-6">Historial de bromas</h2>
+
+    {historial.length === 0 ? (
+      <p className="text-gray-400">No hay bromas aún.</p>
+    ) : (
+      <ul className="space-y-6">
+        {historial.map((broma, i) => (
+          <li key={i} className="border border-white/20 p-4 rounded-xl">
+            <p className="text-sm mb-2">📞 {broma.phone}</p>
+            <p className="text-sm mb-2">🗣️ {broma.mensaje}</p>
+            <audio controls className="w-full mb-2">
+              <source src={broma.audioUrl} type="audio/mpeg" />
+              Tu navegador no soporta audio.
+            </audio>
+            <div className="flex gap-2">
+              <a
+                href={`https://api.whatsapp.com/send?text=Escucha esta broma: ${encodeURIComponent(broma.audioUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-600 px-3 py-1 rounded text-white text-sm"
+              >
+                Compartir por WhatsApp
+              </a>
+              <a
+                href={broma.audioUrl}
+                download={`broma-${i + 1}.mp3`}
+                className="bg-blue-600 px-3 py-1 rounded text-white text-sm"
+              >
+                Descargar audio
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+)}
+
 
       {visibleSection === "politica-de-cookies" && (
         <section
