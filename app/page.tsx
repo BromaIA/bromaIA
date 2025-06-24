@@ -21,7 +21,7 @@ export default function Home() {
   const [started, setStarted] = useState(false);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
   const [processing, setProcessing] = useState<boolean>(false);
-  const [initialMessage, setInitialMessage] = useState<string | null>(null);
+
   const [visibleSection, setVisibleSection] = useState<string | null>(null);
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [errorTerminos, setErrorTerminos] = useState("");
@@ -34,7 +34,7 @@ export default function Home() {
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [smsError, setSmsError] = useState("");
   const [bromasDisponibles, setBromasDisponibles] = useState<number>(0);
-  const [formSent, setFormSent] = useState(false);
+  
 
   useEffect(() => {
     if (
@@ -110,15 +110,15 @@ const handleStart = () => {
 
 
 
-  const reset = () => {
-    setStarted(false);
-    setChat([]);
-    setInitialMessages([]);
-    setInitialMessage(null);
-    setMessage("");
-    setVisibleSection(null);
-    setProcessing(false);
-  };
+const reset = () => {
+  setStarted(false);
+  setChat([]);
+  setInitialMessages([]);
+  setMessage("");
+  setVisibleSection(null);
+  setProcessing(false);
+};
+
 
   const showSection = (section: string) => {
     setVisibleSection(section);
@@ -148,28 +148,31 @@ const handleStart = () => {
     }
   }, []);
 
-const handleSubmit = () => {
-  setInitialMessages([
-    phone,       // Ej: "+34 123456789"
-    voiceOption, // Ej: "Voz femenina"
-    message      // Ej: "Hola, es tu paquete perdido"
-  ]);
-  setStarted(true);
-}
+
 
 const handleSend = async () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
 
-  // Guarda los 3 mensajes iniciales si es la primera vez
+  // 👉 Si aún no ha empezado la broma (pantalla 1)
   if (!started) {
+    if (!phone || !voiceOption || !trimmedMessage) {
+      alert("Faltan datos por rellenar");
+      return;
+    }
+
+    if (!aceptaTerminos) {
+      setErrorTerminos("Debes aceptar los términos para continuar.");
+      return;
+    }
+
     setInitialMessages([phone, voiceOption, trimmedMessage]);
     setStarted(true);
     setMessage("");
     return;
   }
 
-  // Agrega mensaje del usuario al chat
+  // 👉 Si ya está en la pantalla de conversación (pantalla 2)
   setChat((prev) => [...prev, { role: "user", content: trimmedMessage }]);
   setMessage("");
   setProcessing(true);
@@ -182,7 +185,7 @@ const handleSend = async () => {
     }, 100);
   };
 
-  // Verificaciones antes de responder
+
   if (!userName) {
     responder("⚠️ Debes registrarte para hacer la broma.");
     return;
@@ -194,7 +197,7 @@ const handleSend = async () => {
   }
 
   try {
-    // Pedimos la respuesta improvisada a OpenAI
+
     const res = await fetch("/api/openai-response", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,14 +209,14 @@ const handleSend = async () => {
 
     responder(respuestaIA);
 
-    // 🔊 Iniciar llamada real con Retell AI
+
     await fetch("/api/iniciar-llamada", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telefono: phone, voz: voiceOption, mensaje: respuestaIA }),
     });
 
-    // 🔻 Resta 1 crédito
+
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
@@ -222,27 +225,6 @@ const handleSend = async () => {
   }
 };
 
-const comprarBroma = async (cantidad: number) => {
-  try {
-    const res = await fetch("/api/checkout_sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cantidad }),
-    });
-
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Error al crear la sesión de pago.");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Hubo un error al procesar el pago.");
-  }
-};
-
-  
 
 const iniciarVerificacion = async () => {
   const cleanedPhone = phone.replace(/\s+/g, "");
@@ -322,11 +304,36 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
 };
 
 
-
-
+useEffect(() => {
   console.log("Sección visible:", visibleSection);
   console.log("SECCIÓN ACTIVA:", visibleSection);
   console.log("MENSAJES EN CHAT:", chat);
+  console.log("Mensajes iniciales guardados:", [phone, voiceOption, message]);
+  console.log("initialMessages render:", initialMessages);
+}, []);
+
+const comprarBroma = async (cantidad: number) => {
+  try {
+    const res = await fetch("/api/checkout_sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cantidad }),
+    });
+
+    const data = await res.json();
+
+    if (data?.url) {
+      window.location.href = data.url;
+    } else {
+      console.error("Error: respuesta sin URL", data);
+      alert("Error al crear la sesión de pago.");
+    }
+  } catch (error) {
+    console.error("Error en comprarBroma:", error);
+    alert("Hubo un error al procesar el pago.");
+  }
+};
+
 
   return (
     <>
@@ -1035,36 +1042,32 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
 
 {started && visibleSection === null && (
   <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
-    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-20 space-y-4">
-      {initialMessages[0] && (
-        <div className="flex justify-end w-full">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-            📱 Teléfono: {initialMessages[0]}
+    <div className="flex-1 overflow-y-auto px-4 pt-[9rem] pb-24 space-y-4">
+      {initialMessages.length === 3 && (
+        <>
+          <div className="flex justify-end">
+            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
+              📱 Teléfono: {initialMessages[0]}
+            </div>
           </div>
-        </div>
-      )}
-      {initialMessages[1] && (
-        <div className="flex justify-end w-full">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-            🗣️ Tipo de voz: {initialMessages[1]}
+          <div className="flex justify-end">
+            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
+              🗣️ Tipo de voz: {initialMessages[1]}
+            </div>
           </div>
-        </div>
-      )}
-      {initialMessages[2] && (
-        <div className="flex justify-end w-full">
-          <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-            ✉️ Mensaje: {initialMessages[2]}
+          <div className="flex justify-end">
+            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
+              ✉️ Mensaje: {initialMessages[2]}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {chat.map((msg, index) => (
-        <div key={index} className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+        <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
           <div
             className={`${
-              msg.role === "user"
-                ? "bg-[#f472b6] text-white"
-                : "bg-white text-black"
+              msg.role === "user" ? "bg-[#f472b6] text-white" : "bg-white text-black"
             } px-4 py-2 rounded-lg max-w-[75%]`}
           >
             {msg.content}
@@ -1073,7 +1076,7 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
       ))}
 
       {processing && (
-        <div className="flex justify-start w-full">
+        <div className="flex justify-start">
           <div className="bg-white text-black px-4 py-2 rounded-lg max-w-[75%]">
             Procesando...
           </div>
@@ -1083,7 +1086,8 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
       <div ref={chatEndRef} />
     </div>
 
-    <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-gray-800">
+    <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-black">
+
       <div className="max-w-xl mx-auto relative">
         <textarea
           value={message}
@@ -1103,6 +1107,8 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
     </div>
   </section>
 )}
+
+
 <div id="recaptcha-container" style={{ display: "none" }}></div>
 
     </div>

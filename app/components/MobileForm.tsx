@@ -18,11 +18,15 @@ export default function MobileForm({
   const [started, setStarted] = useState(false);
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
+  const [initialMessages, setInitialMessages] = useState<string[]>([]);
 
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
+
+    // Guardar los mensajes iniciales
+    setInitialMessages([phone, voiceOption, message]);
     handleSend();
 
     const userMessage = message.trim();
@@ -32,7 +36,6 @@ export default function MobileForm({
       setTimeout(() => {
         setChat((prev) => [
           ...prev,
-          { role: "user", content: userMessage },
           {
             role: "ia",
             content: "Esto es una respuesta improvisada por la IA. 😜",
@@ -149,6 +152,20 @@ export default function MobileForm({
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
       >
+        {/* Mensajes iniciales */}
+        <div className="flex flex-col space-y-3">
+          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            📱 Teléfono: {initialMessages[0]}
+          </div>
+          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            🗣️ Voz: {initialMessages[1]}
+          </div>
+          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            ✉️ Broma: {initialMessages[2]}
+          </div>
+        </div>
+
+        {/* Mensajes del chat */}
         {chat.map((msg, index) => (
           <div
             key={index}
