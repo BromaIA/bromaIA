@@ -222,32 +222,25 @@ const handleSend = async () => {
   }
 };
 
-  const handleComprarPack = async (cantidad: number) => {
-    try {
-      const res = await fetch("/api/checkout_sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cantidad }),
-      });
+const comprarBroma = async (cantidad: number) => {
+  try {
+    const res = await fetch("/api/checkout_sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cantidad }),
+    });
 
-      const data = await res.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("No se pudo iniciar el pago.");
-      }
-
-      const containerExists = typeof window !== "undefined" && document.getElementById("recaptcha-container");
-      if (!containerExists) {
-        setSmsError("Error interno: recaptcha no encontrado");
-        return;
-      }
-    } catch (err) {
-      console.error("Error al crear la sesión de Stripe:", err);
-      alert("Hubo un error al procesar el pago.");
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Error al crear la sesión de pago.");
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Hubo un error al procesar el pago.");
+  }
+};
 
   
 
@@ -475,62 +468,68 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
         </section>
       )}
 
-      {visibleSection === "comprar-bromas" && (
-        <section
-          className="max-w-xl mx-auto px-4 pt-24 pb-6 text-white overflow-y-auto"
-          style={{
-            maxHeight: "calc(100vh - 4rem)",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          <style jsx>{`
-            section::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
+{visibleSection === "comprar-bromas" && (
+  <div className="relative">
+    <section
+      className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
+      style={{
+        maxHeight: "calc(100vh - 5rem)",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        overflowAnchor: "none",
+      }}
+    >
+      <style jsx>{`
+        section::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
 
-          <div className="sticky top-0 z-40 bg-black pt-2 pb-4">
-            <h3 className="text-2xl font-bold text-center">Comprar bromas</h3>
+      <h2 className="text-3xl font-bold text-center mb-10">Comprar bromas</h2>
+
+      <div className="text-left text-base space-y-6 leading-relaxed">
+        <p className="text-center">
+          Elige un pack de bromas y realiza el pago de forma segura.
+        </p>
+
+        <div className="space-y-6">
+          <div className="border border-white/20 rounded-xl p-5 text-center">
+            <p className="text-lg font-semibold mb-2">🎉 1 broma – 0,99 €</p>
+            <button
+              onClick={() => comprarBroma(1)}
+              className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
+            >
+              Comprar 1 broma
+            </button>
           </div>
 
-          <div className="text-center text-sm space-y-6 mt-6">
-            <p>Elige un pack de bromas y paga de forma segura con Stripe. No necesitas cuenta, solo tu tarjeta.</p>
-
-            <div className="space-y-4">
-              <div className="border border-white/20 rounded-lg p-4">
-                <p className="text-lg font-semibold mb-2">🎉 1 broma – 0,99 €</p>
-                <a
-                  href="/api/checkout_sessions?cantidad=1"
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
-                >
-                  Comprar 1 broma
-                </a>
-              </div>
-
-              <div className="border border-white/20 rounded-lg p-4">
-                <p className="text-lg font-semibold mb-2">🔥 3 bromas – 2,99 €</p>
-                <a
-                  href="/api/checkout_sessions?cantidad=3"
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
-                >
-                  Comprar 3 bromas
-                </a>
-              </div>
-
-              <div className="border border-white/20 rounded-lg p-4">
-                <p className="text-lg font-semibold mb-2">💥 5 bromas – 4,99 €</p>
-                <a
-                  href="/api/checkout_sessions?cantidad=5"
-                  className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
-                >
-                  Comprar 5 bromas
-                </a>
-              </div>
-            </div>
+          <div className="border border-white/20 rounded-xl p-5 text-center">
+            <p className="text-lg font-semibold mb-2">🔥 3 bromas – 2,99 €</p>
+            <button
+              onClick={() => comprarBroma(3)}
+              className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
+            >
+              Comprar 3 bromas
+            </button>
           </div>
-        </section>
-      )}
+
+          <div className="border border-white/20 rounded-xl p-5 text-center">
+            <p className="text-lg font-semibold mb-2">💥 5 bromas – 4,99 €</p>
+            <button
+              onClick={() => comprarBroma(5)}
+              className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded inline-block"
+            >
+              Comprar 5 bromas
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div className="absolute top-0 right-0 w-[8px] h-full bg-black z-[999] pointer-events-none" />
+  </div>
+)}
+
 
       {visibleSection === "terminos-y-condiciones" && (
         <section
@@ -802,62 +801,70 @@ window.recaptchaVerifier = new (RecaptchaVerifier as any)(
       )}
 
       {visibleSection === "faq" && (
-        <section
-          className="max-w-xl mx-auto px-4 pt-24 pb-6 text-white overflow-y-auto"
-          style={{
-            maxHeight: "calc(100vh - 4rem)",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          <style jsx>{`
-            section::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
+  <div className="relative">
+    <section
+      className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
+      style={{
+        maxHeight: "calc(100vh - 5rem)",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        overflowAnchor: "none",
+      }}
+    >
+      <style jsx>{`
+        section::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
 
-          <div className="sticky top-0 z-40 bg-black pt-2 pb-4">
-            <h3 className="text-2xl font-bold text-center">Preguntas frecuentes (FAQ)</h3>
-          </div>
+      <h2 className="text-3xl font-bold text-center mb-10">Preguntas frecuentes (FAQ)</h2>
 
-          <div className="mt-6 space-y-6 text-sm">
-            <div>
-              <h4 className="font-semibold text-pink-400">¿Qué es exactamente BromaIA?</h4>
-              <p>
-                Es una plataforma que convierte un mensaje escrito en una llamada de broma totalmente automática, con voz humana generada por IA, y te entrega la grabación al instante.
-              </p>
-            </div>
+      <div className="text-left text-base space-y-6 leading-relaxed">
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Qué es exactamente BromaIA?</h3>
+          <p>
+            Es una plataforma que convierte un mensaje escrito en una llamada de broma totalmente automática,
+            con voz humana generada por IA. La llamada se realiza en tiempo real y la grabación se entrega al instante.
+          </p>
+        </div>
 
-            <div>
-              <h4 className="font-semibold text-pink-400">¿Las llamadas son reales?</h4>
-              <p>
-                Sí. No son audios pregrabados. La IA genera la voz en tiempo real, improvisando y respondiendo como si fuera una persona auténtica. Puedes elegir el tipo de voz y personalizar el mensaje.
-              </p>
-            </div>
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Las llamadas son reales?</h3>
+          <p>
+            Sí. No se trata de audios pregrabados. La IA genera la voz en tiempo real e improvisa como si fuera una persona.
+            Puedes elegir el tipo de voz y escribir el mensaje que deseas que diga.
+          </p>
+        </div>
 
-            <div>
-              <h4 className="font-semibold text-pink-400">¿Se necesita instalar algo?</h4>
-              <p>
-                No. BromaIA funciona completamente desde el navegador, tanto en móvil como en ordenador. No necesitas descargar ninguna app.
-              </p>
-            </div>
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Se necesita instalar algo?</h3>
+          <p>
+            No. BromaIA funciona directamente desde el navegador, tanto en ordenador como en móvil. No hace falta descargar ninguna aplicación.
+          </p>
+        </div>
 
-            <div>
-              <h4 className="font-semibold text-pink-400">¿Qué pasa si no tengo créditos?</h4>
-              <p>
-                Puedes comprar más bromas desde el apartado "Comprar bromas". Cada usuario nuevo tiene 3 bromas gratuitas si sube su reacción a TikTok mencionando a @bromaIA.
-              </p>
-            </div>
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Qué pasa si no tengo créditos?</h3>
+          <p>
+            Puedes comprar más bromas en la sección correspondiente. Además, los nuevos usuarios tienen acceso a 3 bromas gratuitas
+            si suben su reacción a TikTok mencionando a <strong>@bromaIA</strong>.
+          </p>
+        </div>
 
-            <div>
-              <h4 className="font-semibold text-pink-400">¿Las bromas son legales?</h4>
-              <p>
-                Sí, siempre que se usen con responsabilidad. Está prohibido usar nombres de marcas reales o realizar bromas ofensivas o acosadoras. Las bromas deben ser respetuosas y con fines de entretenimiento.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Las bromas son legales?</h3>
+          <p>
+            Sí, siempre que se usen con responsabilidad. No está permitido utilizar nombres de marcas reales,
+            ni realizar bromas ofensivas o con fines de acoso. El objetivo es siempre el entretenimiento sano.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div className="absolute top-0 right-0 w-[8px] h-full bg-black z-[999] pointer-events-none" />
+  </div>
+)}
+
 
       <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 pt-24">
         {!started && !visibleSection && (
