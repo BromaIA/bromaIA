@@ -194,13 +194,17 @@ export default function MobileForm({
 
       <div className="fixed bottom-4 w-full px-4">
         <div className="relative w-full">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Escribe tu broma..."
-            rows={2}
-            className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-          />
+<textarea
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  placeholder="Escribe tu broma."
+  className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
+  rows={2}
+  onFocus={() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }}
+/>
+
           <button
             onClick={onSubmit}
             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
