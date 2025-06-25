@@ -148,6 +148,27 @@ export default function MobileForm({
           <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
         )}
 
+        {/* 🔍 Invisible para el usuario, visible para Google */}
+        <section
+          aria-hidden="true"
+          className="sr-only"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            height: "1px",
+            width: "1px",
+            overflow: "hidden",
+          }}
+        >
+          <p>
+            BromaIA es la nueva forma de hacer <strong>bromas telefónicas</strong> con
+            <strong> inteligencia artificial</strong>. Escribe el mensaje, selecciona una voz
+            y deja que nuestra IA realice la llamada con <strong>voz realista</strong> y
+            <strong> grabación automática</strong>. Comparte bromas originales sin necesidad
+            de hablar tú. Ideal para sorprender, reír o incluso gastar una inocentada.
+          </p>
+        </section>
+
         <div className="h-[20vh]" /> {/* Espacio para teclado */}
       </section>
     );

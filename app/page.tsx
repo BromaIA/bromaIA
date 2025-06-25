@@ -14,6 +14,7 @@ import { collection, query, getDocs } from "firebase/firestore";
 import { subirAudioAFirebase } from "./lib/uploadAudio"; 
 import { where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import Head from "next/head";
 
 
 import Header from "./header/Header";
@@ -467,6 +468,23 @@ const comprarBroma = async (cantidad: number) => {
 
      <div id="recaptcha-container"></div>
 
+<Head>
+  <title>BromaIA - Bromas telefónicas con IA</title>
+  <meta
+    name="description"
+    content="Crea bromas telefónicas personalizadas con voces de inteligencia artificial. Fácil, rápido y divertido. Grabación incluida."
+  />
+  <meta name="keywords" content="bromas telefónicas, IA, voz artificial, llamadas graciosas, bromas con voz, inteligencia artificial, grabar broma" />
+  <meta property="og:title" content="BromaIA - Bromas con inteligencia artificial" />
+  <meta
+    property="og:description"
+    content="Haz bromas telefónicas usando voces generadas por IA. Elige un mensaje y deja que la IA improvise."
+  />
+  <meta property="og:image" content="https://bromaia.com/og-image.jpg" />
+  <meta property="og:url" content="https://bromaia.com" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.ico" />
+</Head>
 
 
       {visibleSection === "que-es-bromaia" && (
