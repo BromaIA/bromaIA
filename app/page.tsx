@@ -979,7 +979,7 @@ const comprarBroma = async (cantidad: number) => {
 )}
 
 
-      {visibleSection === "faq" && (
+ {visibleSection === "faq" && (
   <div className="relative">
     <section
       className="max-w-xl mx-auto px-6 pt-[6.5rem] pb-10 text-white overflow-y-auto"
@@ -999,6 +999,13 @@ const comprarBroma = async (cantidad: number) => {
       <h2 className="text-3xl font-bold text-center mb-10">Preguntas frecuentes (FAQ)</h2>
 
       <div className="text-left text-base space-y-6 leading-relaxed">
+        <div>
+          <h3 className="font-semibold text-pink-400 mb-1">¿Qué número se utiliza para realizar las llamadas?</h3>
+          <p>
+            Para realizar las bromas telefónicas utilizamos números propios asignados a nuestra cuenta de servicio. Esto garantiza la privacidad y anonimato de los usuarios, además de cumplir con las normativas vigentes. No se utiliza tu número personal para hacer las llamadas.
+          </p>
+        </div>
+
         <div>
           <h3 className="font-semibold text-pink-400 mb-1">¿Qué es exactamente BromaIA?</h3>
           <p>
@@ -1043,6 +1050,7 @@ const comprarBroma = async (cantidad: number) => {
     <div className="absolute top-0 right-0 w-[8px] h-full bg-black z-[999] pointer-events-none" />
   </div>
 )}
+
 
 
       <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 pt-24">
