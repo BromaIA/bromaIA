@@ -1186,6 +1186,26 @@ const comprarBroma = async (cantidad: number) => {
           </div>
         )}
 
+{/* Texto SEO invisible para Google */}
+      <section
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "auto",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+      >
+        <p>
+          ¿Buscas hacer bromas telefónicas IA? En BromaIA puedes generar llamadas con
+          inteligencia artificial y voces realistas. Escribe el mensaje y la IA realiza la
+          llamada por ti. Sin instalar nada. Ideal para bromas divertidas con amigos o
+          pareja. BromaIA es la mejor plataforma de bromas telefónicas con IA en España.
+        </p>
+      </section>
+
+      
 {started && visibleSection === null && (
   <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
     <div className="flex-1 overflow-y-auto px-4 pt-[9rem] pb-24 space-y-4">
