@@ -6,13 +6,14 @@ declare global {
 }
 
 import React, { useState, useRef, useEffect } from "react";
-
+import HistorialBromas from "./components/HistorialBromas";
 import { auth, db } from "./lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { collection, query, getDocs } from "firebase/firestore";
-import { subirAudioAFirebase } from "./lib/uploadAudio"; // Asegúrate de importar esto arriba
-
+import { subirAudioAFirebase } from "./lib/uploadAudio"; 
+import { where } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 
 import Header from "./header/Header";
@@ -47,55 +48,23 @@ const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.
 const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
   
-  const [historial, setHistorial] = useState<any[]>([]);
-useEffect(() => {
-  const cargarHistorial = async () => {
-    if (!userName) return;
+const [historial, setHistorial] = useState<any[]>([]);
 
-    try {
-      const q = query(collection(db, "historial"));
-      const snapshot = await getDocs(q);
 
-      const data = snapshot.docs
-        .map(doc => doc.data())
-        .filter(item => item.phone === userName)
-        .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+ useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserName(user.phoneNumber);
+        // Aquí podrías cargar créditos si los guardas en Firestore
+        // setCredits(...);
+      } else {
+        setUserName(null);
+        setCredits(0);
+      }
+    });
 
-      setHistorial(data);
-    } catch (error) {
-      console.error("Error cargando historial:", error);
-    }
-  };
-
-  if (visibleSection === "historial") {
-    cargarHistorial();
-  }
-}, [visibleSection, userName]);
-
-useEffect(() => {
-  const cargarHistorial = async () => {
-    if (!userName) return;
-
-    try {
-      const q = query(collection(db, "historial"));
-      const snapshot = await getDocs(q);
-
-      const data = snapshot.docs
-        .map(doc => doc.data())
-        .filter(item => item.phone === userName)
-        .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-
-      setHistorial(data);
-    } catch (error) {
-      console.error("Error cargando historial:", error);
-    }
-  };
-
-  if (visibleSection === "historial") {
-    cargarHistorial();
-  }
-}, [visibleSection, userName]);
-
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (
@@ -188,6 +157,23 @@ const handleStart = () => {
 };
 
 
+useEffect(() => {
+  const cargarHistorial = async () => {
+    if (!userName) return;
+
+    try {
+      const ref = collection(db, "bromas");
+      const q = query(ref, where("userPhone", "==", userName));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => doc.data());
+      setHistorial(data);
+    } catch (error) {
+      console.error("❌ Error al cargar historial:", error);
+    }
+  };
+
+  cargarHistorial();
+}, [userName]);
 
 const reset = () => {
   setStarted(false);
@@ -227,8 +213,7 @@ const reset = () => {
     }
   }, []);
 
-  
-const handleSend = async () => {
+  const handleSend = async () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
 
@@ -287,7 +272,12 @@ const handleSend = async () => {
     const llamadaRes = await fetch("/api/iniciar-llamada", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telefono: phone, voz: voiceOption, mensaje: respuestaIA }),
+      body: JSON.stringify({
+        telefono: phone,
+        voz: voiceOption,
+        mensaje: respuestaIA,
+        userPhone: userName, // ✅ IMPORTANTE: añadir aquí para guardar en metadata
+      }),
     });
 
     const llamadaData = await llamadaRes.json();
@@ -323,6 +313,20 @@ const handleSend = async () => {
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
+
+    // ✅ GUARDAR EN FIRESTORE
+    try {
+      const bromaRef = doc(collection(db, "bromas"));
+      await setDoc(bromaRef, {
+        phone,
+        mensaje: trimmedMessage,
+        audioUrl,
+        fecha: new Date().toISOString(),
+        userPhone: userName,
+      });
+    } catch (error) {
+      console.error("❌ Error guardando la broma en Firestore:", error);
+    }
 
   } catch (error) {
     console.error("❌ Error en handleSend:", error);
@@ -789,43 +793,13 @@ const comprarBroma = async (cantidad: number) => {
         </section>
       )}
 
-{visibleSection === "historial" && (
+{visibleSection === "historial" && userName && (
   <div className="w-full bg-black text-white p-6 min-h-screen">
-    <h2 className="text-xl font-bold mb-6">Historial de bromas</h2>
+    <h2 className="text-xl font-bold mb-6 text-center">Historial de bromas</h2>
 
-    {historial.length === 0 ? (
-      <p className="text-gray-400">No hay bromas aún.</p>
-    ) : (
-      <ul className="space-y-6">
-        {historial.map((broma, i) => (
-          <li key={i} className="border border-white/20 p-4 rounded-xl">
-            <p className="text-sm mb-2">📞 {broma.phone}</p>
-            <p className="text-sm mb-2">🗣️ {broma.mensaje}</p>
-            <audio controls className="w-full mb-2">
-              <source src={broma.audioUrl} type="audio/mpeg" />
-              Tu navegador no soporta audio.
-            </audio>
-            <div className="flex gap-2">
-              <a
-                href={`https://api.whatsapp.com/send?text=Escucha esta broma: ${encodeURIComponent(broma.audioUrl)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-green-600 px-3 py-1 rounded text-white text-sm"
-              >
-                Compartir por WhatsApp
-              </a>
-              <a
-                href={broma.audioUrl}
-                download={`broma-${i + 1}.mp3`}
-                className="bg-blue-600 px-3 py-1 rounded text-white text-sm"
-              >
-                Descargar audio
-              </a>
-            </div>
-          </li>
-        ))}
-      </ul>
-    )}
+    <div className="max-w-2xl mx-auto">
+      <HistorialBromas userPhone={userName} />
+    </div>
   </div>
 )}
 

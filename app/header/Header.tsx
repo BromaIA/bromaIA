@@ -194,25 +194,34 @@ export default function Header({
             >
               👤
             </button>
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-44 bg-black text-white rounded shadow z-50 text-xs">
-                <button
-                  onClick={() => {
-                    showSection("historial");
-                    setShowProfileMenu(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-800"
-                >
-                  Historial de bromas
-                </button>
-                <button
-                  onClick={logoutFunction}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-800"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
-            )}
+{showProfileMenu && (
+  <div
+    ref={profileRef}
+    className="absolute right-0 mt-2 w-56 bg-white text-black rounded-2xl shadow-lg z-50 p-4 space-y-3"
+  >
+    <p className="text-sm font-semibold text-gray-700">
+      Sesión iniciada: <span className="font-bold text-black">{userName}</span>
+    </p>
+
+    <button
+      onClick={() => {
+        showSection("historial");
+        setShowProfileMenu(false);
+      }}
+      className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm transition"
+    >
+      📜 Historial de bromas
+    </button>
+
+    <button
+      onClick={logoutFunction}
+      className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-100 hover:bg-red-200 text-sm text-red-600 transition"
+    >
+      🚪 Cerrar sesión
+    </button>
+  </div>
+)}
+
           </div>
         </div>
       ) : (
