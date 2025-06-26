@@ -237,11 +237,39 @@ const reset = () => {
 
 const handleSend = async () => {
   if (!phone || !voiceOption || !message) {
-    setChat((prev) => [...prev, { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." }]);
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." },
+    ]);
     return;
   }
 
-  // Mostrar mensaje de "Procesando..."
+  const verificarNumero = async (numero: string) => {
+    try {
+      const res = await fetch("/api/verificar-numero", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero }),
+      });
+
+      const data = await res.json();
+      return data?.valido;
+    } catch (err) {
+      console.error("❌ Error al verificar número:", err);
+      return false;
+    }
+  };
+
+  const numeroEsValido = await verificarNumero(phone);
+  if (!numeroEsValido) {
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "⚠️ Ese número no es válido o no es un móvil. Intenta con otro." },
+    ]);
+    return;
+  }
+
+  // Mostrar mensajes iniciales
   setChat((prev) => [
     ...prev,
     { role: "user", content: `📱 Teléfono: ${phone}` },
@@ -252,17 +280,14 @@ const handleSend = async () => {
   setProcessing(true);
 
   try {
-    // Enviar a tu API que conecta con Retell
     const response = await fetch("/api/enviar-broma", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telefono: phone,
         voz: voiceOption,
         mensaje: message,
-        userPhone: userName, // si usas login con Firebase
+        userPhone: userName || "desconocido",
       }),
     });
 
@@ -272,70 +297,34 @@ const handleSend = async () => {
     try {
       data = JSON.parse(rawText);
     } catch (error) {
-      console.error("❌ Respuesta no es JSON:", error, rawText);
+      console.error("❌ Respuesta no válida:", error, rawText);
       setChat((prev) => [
         ...prev,
-        { role: "ai", content: "❌ Error técnico al procesar la respuesta. Inténtalo más tarde." },
+        { role: "ai", content: "❌ Error al procesar la respuesta. Inténtalo de nuevo." },
       ]);
       return;
     }
 
     if (!response.ok || !data.success) {
-      console.error("❌ Error en Retell o en la llamada:", data?.error || data);
       setChat((prev) => [
         ...prev,
-        { role: "ai", content: "❌ Error técnico al hacer la llamada. Inténtalo más tarde." },
+        { role: "ai", content: `❌ No se pudo hacer la broma: ${data.error || "Error desconocido."}` },
       ]);
       return;
     }
 
-    // ✅ Éxito
     setChat((prev) => [
       ...prev,
       { role: "ai", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." },
     ]);
   } catch (error) {
-    console.error("❌ Error al enviar:", error);
+    console.error("❌ Error en la llamada:", error);
     setChat((prev) => [
       ...prev,
-      { role: "ai", content: "❌ Error técnico al hacer la llamada. Inténtalo más tarde." },
+      { role: "ai", content: "❌ Error inesperado. Inténtalo más tarde." },
     ]);
   } finally {
     setProcessing(false);
-  }
-};
-
-const hacerLlamadaBromaIA = async (
-  telefonoDestino: string,
-  mensajeUsuario: string,
-  tipoVoz: string
-): Promise<{ success: boolean; call_id?: string; error?: string }> => {
-  try {
-    const res = await fetch("/api/enviar-broma", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        telefono: telefonoDestino,
-        mensaje: mensajeUsuario,
-        voz: tipoVoz,
-        userPhone: "test", // cambia esto si usas el número del usuario real
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("❌ Error al hacer la llamada:", data.error);
-      return { success: false, error: data.error };
-    }
-
-    console.log("✅ Llamada iniciada con ID:", data.call_id);
-    return { success: true, call_id: data.call_id };
-  } catch (error) {
-    console.error("❌ Error general al iniciar la llamada:", error);
-    return { success: false, error: "Error inesperado al iniciar la broma" };
   }
 };
 
