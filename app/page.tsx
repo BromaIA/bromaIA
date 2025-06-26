@@ -268,28 +268,22 @@ const handleSend = async () => {
     }, 100);
   };
 
-  // 🔒 Verificamos que el usuario está logueado (con backup localStorage)
+  // ✅ Añadido para debug
+  console.log("🤖 Nombre de usuario actual:", userName);
+
   if (!userName) {
-    const desdeLocal = localStorage.getItem("userName");
-    if (desdeLocal) {
-      setUserName(desdeLocal);
-    } else {
-      responder("⚠️ Debes registrarte para hacer la broma.");
-      return;
-    }
+    responder("⚠️ Debes registrarte para hacer la broma.");
+    return;
   }
 
-  // 🔄 Verificamos créditos disponibles
   if (credits <= 0) {
     responder("⚠️ No tienes bromas disponibles.");
     return;
   }
 
   try {
-    // 🕐 Avisamos al usuario que se está procesando
     responder("📞 Procesando la llamada... espera unos segundos.");
 
-    // 🔊 Llamada real con Retell
     const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
       method: "POST",
       headers: {
@@ -311,8 +305,7 @@ const handleSend = async () => {
       <div className="flex flex-col gap-2">
         <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
         <p className="text-sm text-white">
-          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes guardada en tu <strong>historial de bromas</strong>.
-          <br />
+          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes guardada en tu <strong>historial de bromas</strong>.<br />
           🎁 <strong>¿Quieres otra broma gratis?</strong> Súbela a TikTok mencionando <span className="text-pink-400 font-bold">@bromaia</span> y la recibirás 😉
         </p>
         <div className="flex gap-3 text-sm mt-2">
@@ -337,12 +330,12 @@ const handleSend = async () => {
 
     responder(audioBubble);
 
-    // 📉 Restamos crédito
+    // ✅ Descontar crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
 
-    // 📁 Guardamos en Firestore
+    // ✅ Guardar en Firestore
     try {
       const bromaRef = doc(collection(db, "bromas"));
       await setDoc(bromaRef, {
