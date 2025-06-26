@@ -789,7 +789,7 @@ const comprarBroma = async (cantidad: number) => {
             </p>
 
             <p>
-              Utilizamos servicios de terceros como Firebase y Retell AI, que también aplican medidas de protección avanzadas conforme al RGPD. Toda la información viaja encriptada y segura.
+              Utilizamos servicios de terceros que también aplican medidas de protección avanzadas conforme al RGPD. Toda la información viaja encriptada y segura.
             </p>
 
             <p>
@@ -842,7 +842,7 @@ const comprarBroma = async (cantidad: number) => {
             </p>
 
             <p>
-              Las cookies que usamos son propias y de terceros (como Google Analytics o Stripe). Nos permiten, por ejemplo, saber cuántas personas visitan la web o detectar errores técnicos, siempre de forma anónima.
+              Las cookies que usamos son propias y de terceros. Nos permiten, por ejemplo, saber cuántas personas visitan la web o detectar errores técnicos, siempre de forma anónima.
             </p>
 
             <p>
