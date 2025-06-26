@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { telefono, voz, mensaje, userPhone } = body;
+    const { telefono, mensaje, userPhone } = body;
 
     const RETELL_API_KEY = process.env.RETELL_API_KEY!;
     const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_521c176cf266548aaf42225202";
 
+    const VOICE_ID_SANTIAGO = "11labs-Santiago"; // ✅ voz fija
+
     const response = await fetch("https://api.retellai.com/v1/calls", {
+
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,7 +22,7 @@ export async function POST(req: Request) {
         agent_id: RETELL_AGENT_ID,
         phone_number: telefono,
         input: mensaje,
-        voice_id: voz,
+        voice_id: VOICE_ID_SANTIAGO,
         metadata: { userPhone: userPhone || "desconocido" },
       }),
     });
@@ -41,6 +45,7 @@ export async function POST(req: Request) {
 
     console.log("✅ Llamada iniciada con ID:", data.call_id);
     return NextResponse.json({ success: true, call_id: data.call_id });
+
   } catch (error) {
     console.error("❌ Error general:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
