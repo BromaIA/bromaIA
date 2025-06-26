@@ -279,11 +279,9 @@ const handleSend = async () => {
   try {
     responder("📞 Procesando la llamada... espera unos segundos.");
 
-    const llamadaRes = await fetch("/api/enviar-broma", {
+    const retellRes = await fetch("/api/enviar-broma", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telefono: phone,
         voz: voiceOption,
@@ -292,22 +290,31 @@ const handleSend = async () => {
       }),
     });
 
-    const data = await llamadaRes.json();
+    const rawText = await retellRes.text();
+    console.log("📨 Respuesta cruda Retell:", rawText);
 
-    if (!llamadaRes.ok || !data.call_id) {
-      console.error("❌ Error desde Retell (API route):", data);
-      responder("❌ Error técnico al hacer la llamada. Inténtalo más tarde.");
+    let llamadaData = null;
+    try {
+      llamadaData = JSON.parse(rawText);
+    } catch (e) {
+      console.error("❌ Error al parsear JSON:", e);
+      responder("❌ Error técnico inesperado. Inténtalo más tarde.");
       return;
     }
 
-    const audioUrl = "/audios/broma-ejemplo.mp3"; // Puedes ajustar esto más tarde si grabas las llamadas
+    if (!retellRes.ok) {
+      console.error("❌ Error de Retell:", llamadaData);
+      responder("❌ No se pudo iniciar la llamada. Intenta más tarde.");
+      return;
+    }
 
+    const audioUrl = llamadaData?.recording_url || "/audios/broma-ejemplo.mp3"; // opcional
     const audioBubble = (
       <div className="flex flex-col gap-2">
         <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
         <p className="text-sm text-white">
           📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes en tu <strong>historial de bromas</strong>.<br />
-          🎁 <strong>¿Quieres otra broma gratis?</strong> Súbela a TikTok mencionando <span className="text-pink-400 font-bold">@bromaia</span> y la recibirás 😉
+          🎁 <strong>¿Quieres otra broma gratis?</strong> Sube el audio a TikTok y menciona <span className="text-pink-400 font-bold">@bromaia</span> 😉
         </p>
         <div className="flex gap-3 text-sm mt-2">
           <a
@@ -318,7 +325,11 @@ const handleSend = async () => {
           >
             Compartir por WhatsApp
           </a>
-          <a href={audioUrl} download className="underline text-blue-400">
+          <a
+            href={audioUrl}
+            download
+            className="underline text-blue-400"
+          >
             Descargar audio
           </a>
         </div>
@@ -327,10 +338,12 @@ const handleSend = async () => {
 
     responder(audioBubble);
 
+    // ✅ Descontar 1 crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
 
+    // ✅ Guardar en Firestore con datos mínimos
     try {
       const bromaRef = doc(collection(db, "bromas"));
       await setDoc(bromaRef, {
@@ -339,13 +352,15 @@ const handleSend = async () => {
         audioUrl,
         fecha: new Date().toISOString(),
         userPhone: userName,
+        tipo: "gratuita",
       });
-    } catch (error) {
-      console.error("❌ Error guardando la broma en Firestore:", error);
+    } catch (err) {
+      console.error("❌ Error guardando broma en Firestore:", err);
     }
+
   } catch (error) {
-    console.error("❌ Error en handleSend:", error);
-    responder("❌ Error técnico al hacer la llamada. Inténtalo más tarde.");
+    console.error("❌ Error general en handleSend:", error);
+    responder("❌ Error técnico. Intenta de nuevo más tarde.");
   }
 };
 
