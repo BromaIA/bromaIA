@@ -218,7 +218,7 @@ const reset = () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
 
-  // 👉 Si aún no ha empezado la broma (pantalla 1)
+  // 👉 Pantalla 1: todavía no ha empezado la broma
   if (!started) {
     if (!phone || !voiceOption || !trimmedMessage) {
       alert("Faltan datos por rellenar");
@@ -235,7 +235,7 @@ const reset = () => {
     return;
   }
 
-  // 👉 Si ya está en la pantalla de conversación (pantalla 2)
+  // 👉 Pantalla 2: ya en conversación
   setChat((prev) => [...prev, { role: "user", content: trimmedMessage }]);
   setMessage("");
   setProcessing(true);
@@ -259,32 +259,28 @@ const reset = () => {
   }
 
   try {
-    // Generar la respuesta con OpenAI
-    const res = await fetch("/api/openai-response", {
+    // 🔊 Llamada real con Retell
+    const llamadaRes = await fetch("https://api.retellai.com/call", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: trimmedMessage }),
-    });
-
-    const data = await res.json();
-    const respuestaIA = data?.respuestaIA || "No se pudo generar la broma";
-
-    // 🔊 Iniciar llamada (simulada o real con Retell)
-    const llamadaRes = await fetch("/api/iniciar-llamada", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`
+      },
       body: JSON.stringify({
-        telefono: phone,
-        voz: voiceOption,
-        mensaje: respuestaIA,
-        userPhone: userName, // ✅ IMPORTANTE: añadir aquí para guardar en metadata
-      }),
+        phone_number: phone,
+        agent_id: "agent_4b7c2762e9a6f32390522b9e0a", // tu ID real de agente
+        metadata: {
+          mensaje: trimmedMessage,
+          voz: voiceOption,
+          userPhone: userName,
+        }
+      })
     });
 
     const llamadaData = await llamadaRes.json();
-    const audioUrl = llamadaData.audioUrl || "/audios/broma-ejemplo.mp3";
 
-    // Mostrar el audio generado en el chat
+    const audioUrl = llamadaData?.audio_url || "/audios/broma-ejemplo.mp3";
+
     const audioBubble = (
       <div className="flex flex-col gap-2">
         <audio controls src={audioUrl} className="w-full rounded-lg" />
@@ -310,12 +306,12 @@ const reset = () => {
 
     responder(audioBubble);
 
-    // Restar 1 crédito
+    // Restar crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
 
-    // ✅ GUARDAR EN FIRESTORE
+    // Guardar en Firestore
     try {
       const bromaRef = doc(collection(db, "bromas"));
       await setDoc(bromaRef, {
@@ -331,7 +327,7 @@ const reset = () => {
 
   } catch (error) {
     console.error("❌ Error en handleSend:", error);
-    responder("❌ Error técnico. Inténtalo de nuevo.");
+    responder("❌ Error técnico al hacer la llamada. Inténtalo más tarde.");
   }
 };
 
@@ -1050,8 +1046,8 @@ const comprarBroma = async (cantidad: number) => {
         <div>
           <h3 className="font-semibold text-pink-400 mb-1">¿Qué pasa si no tengo créditos?</h3>
           <p>
-            Puedes comprar más bromas en la sección correspondiente. Además, los nuevos usuarios tienen acceso a 3 bromas gratuitas
-            si suben su reacción a TikTok mencionando a <strong>@bromaIA</strong>.
+            Puedes comprar más bromas en la sección correspondiente. Además, los usuarios tienen acceso a 1 broma gratuita
+            si suben su reacción a TikTok y mencionan a <strong>@bromaIA</strong>.
           </p>
         </div>
 
@@ -1205,7 +1201,7 @@ const comprarBroma = async (cantidad: number) => {
         </p>
       </section>
 
-      
+
 {started && visibleSection === null && (
   <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
     <div className="flex-1 overflow-y-auto px-4 pt-[9rem] pb-24 space-y-4">
