@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const response = await fetch("https://api.retellai.com/v1/calls", {
+
       method: "POST",
       headers: {
         "Content-Type": "application/json",
