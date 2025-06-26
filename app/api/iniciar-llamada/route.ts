@@ -1,60 +1,57 @@
-// app/api/iniciar-llamada/route.ts
 import { NextResponse } from "next/server";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../../lib/firebase";
-
-const RETELL_API_KEY = process.env.RETELL_API_KEY!;
-const RETELL_AGENT_ID = "agent_4b7c2762e9a6f32390522b9e0a"; // ✅ Tu Agent ID real de BromaIA
+import { collection, getDocs, query, where, addDoc, Timestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../../lib/firebase";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { telefono, voz, mensaje, userPhone } = body;
+    const { telefono, voz, mensaje, tipo } = body; // tipo: "gratuita" o "pago"
 
-    if (!telefono || !voz || !mensaje) {
-      return NextResponse.json({ success: false, error: "Faltan datos" }, { status: 400 });
+    // 👉 Contar solo las llamadas gratuitas en total (sin filtrar por mes)
+    const gratuitasQuery = query(
+      collection(db, "bromas"),
+      where("tipo", "==", "gratuita")
+    );
+    const snapshot = await getDocs(gratuitasQuery);
+
+    if (tipo === "gratuita" && snapshot.size >= 192) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No es posible realizar su broma. Se ha alcanzado el límite de bromas gratuitas. Solo están disponibles las bromas de pago. Lo sentimos.",
+        },
+        { status: 403 }
+      );
     }
 
-    // 🔁 Llamada real a Retell AI
-    const retellRes = await fetch("https://api.retellai.com/v1/calls", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RETELL_API_KEY}`,
-      },
-      body: JSON.stringify({
-        agent_id: RETELL_AGENT_ID,
-        phone_number: telefono,
-        metadata: {
-          mensaje_usuario: mensaje,
-          voz: voz,
-          userPhone: userPhone || "anónimo",
-        },
-      }),
+    // Simulación de audio generado
+    const fakeAudio = Buffer.from("SIMULATED_MP3_AUDIO_CONTENT");
+    const fileName = `broma-${Date.now()}.mp3`;
+    const audioRef = ref(storage, `audios/${fileName}`);
+
+    await uploadBytes(audioRef, fakeAudio, {
+      contentType: "audio/mpeg",
     });
 
-    const retellData = await retellRes.json();
+    const audioUrl = await getDownloadURL(audioRef);
 
-    if (!retellRes.ok) {
-      console.error("❌ Error Retell:", retellData);
-      return NextResponse.json({ success: false, error: "Error desde Retell" }, { status: 500 });
-    }
-
-    // ✅ Guardar en Firestore
-    await addDoc(collection(db, "historial"), {
+    // Guardar en Firestore
+    await addDoc(collection(db, "bromas"), {
       phone: telefono,
       voz,
       mensaje,
-      userPhone: userPhone || null,
       fecha: Timestamp.now(),
-      retellCallId: retellData.call_id || null,
+      audioUrl,
+      tipo,
     });
 
-    return NextResponse.json({ success: true, callId: retellData.call_id });
+    return NextResponse.json({ success: true, audioUrl });
+
   } catch (error) {
-    console.error("❌ Error general:", error);
+    console.error("❌ Error al iniciar llamada:", error);
     return NextResponse.json(
-      { success: false, error: "Error inesperado" },
+      { success: false, error: "Error al generar la broma" },
       { status: 500 }
     );
   }
