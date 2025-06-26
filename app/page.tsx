@@ -20,6 +20,7 @@ import Head from "next/head";
 import Header from "./header/Header";
 import MobileForm from "./components/MobileForm";
 
+import { hacerLlamadaBromaIA } from "./lib/retell";
 
 
 export default function Home() {
@@ -301,6 +302,40 @@ const handleSend = async () => {
     ]);
   } finally {
     setProcessing(false);
+  }
+};
+
+const hacerLlamadaBromaIA = async (
+  telefonoDestino: string,
+  mensajeUsuario: string,
+  tipoVoz: string
+): Promise<{ success: boolean; call_id?: string; error?: string }> => {
+  try {
+    const res = await fetch("/api/enviar-broma", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        telefono: telefonoDestino,
+        mensaje: mensajeUsuario,
+        voz: tipoVoz,
+        userPhone: "test", // cambia esto si usas el número del usuario real
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ Error al hacer la llamada:", data.error);
+      return { success: false, error: data.error };
+    }
+
+    console.log("✅ Llamada iniciada con ID:", data.call_id);
+    return { success: true, call_id: data.call_id };
+  } catch (error) {
+    console.error("❌ Error general al iniciar la llamada:", error);
+    return { success: false, error: "Error inesperado al iniciar la broma" };
   }
 };
 
