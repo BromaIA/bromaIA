@@ -234,7 +234,7 @@ const reset = () => {
     }
   }, []);
 
-  const handleSend = async () => {
+const handleSend = async () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
 
@@ -268,76 +268,81 @@ const reset = () => {
     }, 100);
   };
 
+  // 🔒 Verificamos que el usuario está logueado (con backup localStorage)
   if (!userName) {
-    responder("⚠️ Debes registrarte para hacer la broma.");
-    return;
+    const desdeLocal = localStorage.getItem("userName");
+    if (desdeLocal) {
+      setUserName(desdeLocal);
+    } else {
+      responder("⚠️ Debes registrarte para hacer la broma.");
+      return;
+    }
   }
 
+  // 🔄 Verificamos créditos disponibles
   if (credits <= 0) {
     responder("⚠️ No tienes bromas disponibles.");
     return;
   }
 
   try {
-     // 🕐 Avisamos al usuario que se está procesando
-  responder("📞 Procesando la llamada... espera unos segundos.");
+    // 🕐 Avisamos al usuario que se está procesando
+    responder("📞 Procesando la llamada... espera unos segundos.");
 
     // 🔊 Llamada real con Retell
-const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`
-  },
-  body: JSON.stringify({
-    phone_number: phone,
-    agent_id: "agent_521c176cf266548aaf42225202",
-    input: trimmedMessage
-  })
-});
-
+    const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`
+      },
+      body: JSON.stringify({
+        phone_number: phone,
+        agent_id: "agent_521c176cf266548aaf42225202",
+        input: trimmedMessage
+      })
+    });
 
     const llamadaData = await llamadaRes.json();
 
     const audioUrl = llamadaData?.recording_url || "/audios/broma-ejemplo.mp3";
 
-const audioBubble = (
-  <div className="flex flex-col gap-2">
-    <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
-    <p className="text-sm text-white">
-      📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes guardada en tu <strong>historial de bromas</strong>.
-      <br />
-      🎁 <strong>¿Quieres otra broma gratis?</strong> Súbela a TikTok mencionando <span className="text-pink-400 font-bold">@bromaia</span> y la recibirás 😉
-    </p>
-    <div className="flex gap-3 text-sm mt-2">
-      <a
-        href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${window.location.origin}${audioUrl}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline text-green-400"
-      >
-        Compartir por WhatsApp
-      </a>
-      <a
-        href={audioUrl}
-        download
-        className="underline text-blue-400"
-      >
-        Descargar audio
-      </a>
-    </div>
-  </div>
-);
-
+    const audioBubble = (
+      <div className="flex flex-col gap-2">
+        <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
+        <p className="text-sm text-white">
+          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes guardada en tu <strong>historial de bromas</strong>.
+          <br />
+          🎁 <strong>¿Quieres otra broma gratis?</strong> Súbela a TikTok mencionando <span className="text-pink-400 font-bold">@bromaia</span> y la recibirás 😉
+        </p>
+        <div className="flex gap-3 text-sm mt-2">
+          <a
+            href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${window.location.origin}${audioUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-green-400"
+          >
+            Compartir por WhatsApp
+          </a>
+          <a
+            href={audioUrl}
+            download
+            className="underline text-blue-400"
+          >
+            Descargar audio
+          </a>
+        </div>
+      </div>
+    );
 
     responder(audioBubble);
 
-    // Restar crédito
+    // 📉 Restamos crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
 
-    // Guardar en Firestore
+    // 📁 Guardamos en Firestore
     try {
       const bromaRef = doc(collection(db, "bromas"));
       await setDoc(bromaRef, {
