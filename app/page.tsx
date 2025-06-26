@@ -284,22 +284,44 @@ const handleSend = async () => {
   try {
     responder("📞 Procesando la llamada... espera unos segundos.");
 
-    const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`
-      },
-      body: JSON.stringify({
-        phone_number: phone,
-        agent_id: "agent_521c176cf266548aaf42225202",
-        input: trimmedMessage
-      })
-    });
+   const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`,
+  },
+  body: JSON.stringify({
+    phone_number: phone,
+    agent_id: "agent_521c176cf266548aaf42225202", // ← asegúrate que este es el nuevo agente si lo cambiaste
+    input: trimmedMessage,
+  }),
+});
 
-    const llamadaData = await llamadaRes.json();
 
-    const audioUrl = llamadaData?.recording_url || "/audios/broma-ejemplo.mp3";
+    const text = await llamadaRes.text();
+console.log("📨 Respuesta de Retell:", text);
+
+// Intenta parsear si es JSON válido (opcional)
+let audioUrl = "/audios/broma-ejemplo.mp3"; // Valor por defecto
+let llamadaData = null;
+
+try {
+  const text = await llamadaRes.text();
+  console.log("📨 Respuesta de Retell (texto plano):", text);
+
+  llamadaData = JSON.parse(text);
+  console.log("✅ JSON parseado:", llamadaData);
+
+  if (llamadaData?.recording_url) {
+    audioUrl = llamadaData.recording_url;
+  } else {
+    console.warn("⚠️ No se encontró recording_url. Se usará el audio por defecto.");
+  }
+} catch (e) {
+  console.error("❌ No es JSON válido o fallo al hacer parse:", e);
+}
+
+console.log("📞 Status de la respuesta:", llamadaRes.status);
 
     const audioBubble = (
       <div className="flex flex-col gap-2">

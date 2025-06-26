@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         Authorization: `Bearer ${RETELL_API_KEY}`,
       },
       body: JSON.stringify({
-        agent_id: RETELL_AGENT_ID,
+        agent_id: "agent_521c176cf266548aaf42225202",
         phone_number: telefono,
         input: mensaje,
         voice_id: voz,
