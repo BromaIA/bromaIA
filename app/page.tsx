@@ -235,134 +235,75 @@ const reset = () => {
   }, []);
 
 const handleSend = async () => {
-  const trimmedMessage = message.trim();
-  if (!trimmedMessage) return;
-
-  if (!started) {
-    if (!phone || !voiceOption || !trimmedMessage) {
-      alert("Faltan datos por rellenar");
-      return;
-    }
-    if (!aceptaTerminos) {
-      setErrorTerminos("Debes aceptar los términos para continuar.");
-      return;
-    }
-
-    setInitialMessages([phone, voiceOption, trimmedMessage]);
-    setStarted(true);
-    setMessage("");
+  if (!phone || !voiceOption || !message) {
+    setChat((prev) => [...prev, { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." }]);
     return;
   }
 
-  setChat((prev) => [...prev, { role: "user", content: trimmedMessage }]);
-  setMessage("");
+  // Mostrar mensaje de "Procesando..."
+  setChat((prev) => [
+    ...prev,
+    { role: "user", content: `📱 Teléfono: ${phone}` },
+    { role: "user", content: `🧑‍🎤 Tipo de voz: ${voiceOption}` },
+    { role: "user", content: `💬 Mensaje: ${message}` },
+    { role: "ai", content: "📞 Procesando la llamada... espera unos segundos." },
+  ]);
   setProcessing(true);
 
-  const responder = (contenido: React.ReactNode) => {
-    setChat((prev) => [...prev, { role: "ai", content: contenido }]);
-    setProcessing(false);
-    setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  };
-
-  if (!userName) {
-    responder("⚠️ Debes registrarte para hacer la broma.");
-    return;
-  }
-
-  if (credits <= 0) {
-    responder("⚠️ No tienes bromas disponibles.");
-    return;
-  }
-
   try {
-    responder("📞 Procesando la llamada... espera unos segundos.");
-
-    const retellRes = await fetch("/api/enviar-broma", {
+    // Enviar a tu API que conecta con Retell
+    const response = await fetch("/api/enviar-broma", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         telefono: phone,
         voz: voiceOption,
-        mensaje: trimmedMessage,
-        userPhone: userName,
+        mensaje: message,
+        userPhone: userName, // si usas login con Firebase
       }),
     });
 
-    const rawText = await retellRes.text();
-    console.log("📨 Respuesta cruda Retell:", rawText);
+    const rawText = await response.text();
+    let data;
 
-    let llamadaData = null;
     try {
-      llamadaData = JSON.parse(rawText);
-    } catch (e) {
-      console.error("❌ Error al parsear JSON:", e);
-      responder("❌ Error técnico inesperado. Inténtalo más tarde.");
+      data = JSON.parse(rawText);
+    } catch (error) {
+      console.error("❌ Respuesta no es JSON:", error, rawText);
+      setChat((prev) => [
+        ...prev,
+        { role: "ai", content: "❌ Error técnico al procesar la respuesta. Inténtalo más tarde." },
+      ]);
       return;
     }
 
-    if (!retellRes.ok) {
-      console.error("❌ Error de Retell:", llamadaData);
-      responder("❌ No se pudo iniciar la llamada. Intenta más tarde.");
+    if (!response.ok || !data.success) {
+      console.error("❌ Error en Retell o en la llamada:", data?.error || data);
+      setChat((prev) => [
+        ...prev,
+        { role: "ai", content: "❌ Error técnico al hacer la llamada. Inténtalo más tarde." },
+      ]);
       return;
     }
 
-    const audioUrl = llamadaData?.recording_url || "/audios/broma-ejemplo.mp3"; // opcional
-    const audioBubble = (
-      <div className="flex flex-col gap-2">
-        <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
-        <p className="text-sm text-white">
-          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes en tu <strong>historial de bromas</strong>.<br />
-          🎁 <strong>¿Quieres otra broma gratis?</strong> Sube el audio a TikTok y menciona <span className="text-pink-400 font-bold">@bromaia</span> 😉
-        </p>
-        <div className="flex gap-3 text-sm mt-2">
-          <a
-            href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${window.location.origin}${audioUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-green-400"
-          >
-            Compartir por WhatsApp
-          </a>
-          <a
-            href={audioUrl}
-            download
-            className="underline text-blue-400"
-          >
-            Descargar audio
-          </a>
-        </div>
-      </div>
-    );
-
-    responder(audioBubble);
-
-    // ✅ Descontar 1 crédito
-    const nuevosCreditos = credits - 1;
-    setCredits(nuevosCreditos);
-    localStorage.setItem("bromaCredits", nuevosCreditos.toString());
-
-    // ✅ Guardar en Firestore con datos mínimos
-    try {
-      const bromaRef = doc(collection(db, "bromas"));
-      await setDoc(bromaRef, {
-        phone,
-        mensaje: trimmedMessage,
-        audioUrl,
-        fecha: new Date().toISOString(),
-        userPhone: userName,
-        tipo: "gratuita",
-      });
-    } catch (err) {
-      console.error("❌ Error guardando broma en Firestore:", err);
-    }
-
+    // ✅ Éxito
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." },
+    ]);
   } catch (error) {
-    console.error("❌ Error general en handleSend:", error);
-    responder("❌ Error técnico. Intenta de nuevo más tarde.");
+    console.error("❌ Error al enviar:", error);
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "❌ Error técnico al hacer la llamada. Inténtalo más tarde." },
+    ]);
+  } finally {
+    setProcessing(false);
   }
 };
+
 
 const iniciarVerificacion = async () => {
   const cleanedPhone = phone.replace(/\s+/g, "");
