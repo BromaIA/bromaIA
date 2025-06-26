@@ -238,7 +238,6 @@ const handleSend = async () => {
   const trimmedMessage = message.trim();
   if (!trimmedMessage) return;
 
-  // 👉 Pantalla 1: todavía no ha empezado la broma
   if (!started) {
     if (!phone || !voiceOption || !trimmedMessage) {
       alert("Faltan datos por rellenar");
@@ -255,7 +254,6 @@ const handleSend = async () => {
     return;
   }
 
-  // 👉 Pantalla 2: ya en conversación
   setChat((prev) => [...prev, { role: "user", content: trimmedMessage }]);
   setMessage("");
   setProcessing(true);
@@ -267,9 +265,6 @@ const handleSend = async () => {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
-
-  // ✅ Añadido para debug
-  console.log("🤖 Nombre de usuario actual:", userName);
 
   if (!userName) {
     responder("⚠️ Debes registrarte para hacer la broma.");
@@ -284,50 +279,34 @@ const handleSend = async () => {
   try {
     responder("📞 Procesando la llamada... espera unos segundos.");
 
-   const llamadaRes = await fetch("https://api.retellai.com/v1/calls", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API_KEY}`,
-  },
-  body: JSON.stringify({
-    phone_number: phone,
-    agent_id: "agent_521c176cf266548aaf42225202", // ← asegúrate que este es el nuevo agente si lo cambiaste
-    input: trimmedMessage,
-  }),
-});
+    const llamadaRes = await fetch("/api/enviar-broma", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        telefono: phone,
+        voz: voiceOption,
+        mensaje: trimmedMessage,
+        userPhone: userName,
+      }),
+    });
 
+    const data = await llamadaRes.json();
 
-    const text = await llamadaRes.text();
-console.log("📨 Respuesta de Retell:", text);
+    if (!llamadaRes.ok || !data.call_id) {
+      console.error("❌ Error desde Retell (API route):", data);
+      responder("❌ Error técnico al hacer la llamada. Inténtalo más tarde.");
+      return;
+    }
 
-// Intenta parsear si es JSON válido (opcional)
-let audioUrl = "/audios/broma-ejemplo.mp3"; // Valor por defecto
-let llamadaData = null;
-
-try {
-  const text = await llamadaRes.text();
-  console.log("📨 Respuesta de Retell (texto plano):", text);
-
-  llamadaData = JSON.parse(text);
-  console.log("✅ JSON parseado:", llamadaData);
-
-  if (llamadaData?.recording_url) {
-    audioUrl = llamadaData.recording_url;
-  } else {
-    console.warn("⚠️ No se encontró recording_url. Se usará el audio por defecto.");
-  }
-} catch (e) {
-  console.error("❌ No es JSON válido o fallo al hacer parse:", e);
-}
-
-console.log("📞 Status de la respuesta:", llamadaRes.status);
+    const audioUrl = "/audios/broma-ejemplo.mp3"; // Puedes ajustar esto más tarde si grabas las llamadas
 
     const audioBubble = (
       <div className="flex flex-col gap-2">
         <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
         <p className="text-sm text-white">
-          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes guardada en tu <strong>historial de bromas</strong>.<br />
+          📌 Puedes <strong>compartirla</strong> o <strong>guardarla</strong>. También la tienes en tu <strong>historial de bromas</strong>.<br />
           🎁 <strong>¿Quieres otra broma gratis?</strong> Súbela a TikTok mencionando <span className="text-pink-400 font-bold">@bromaia</span> y la recibirás 😉
         </p>
         <div className="flex gap-3 text-sm mt-2">
@@ -339,11 +318,7 @@ console.log("📞 Status de la respuesta:", llamadaRes.status);
           >
             Compartir por WhatsApp
           </a>
-          <a
-            href={audioUrl}
-            download
-            className="underline text-blue-400"
-          >
+          <a href={audioUrl} download className="underline text-blue-400">
             Descargar audio
           </a>
         </div>
@@ -352,12 +327,10 @@ console.log("📞 Status de la respuesta:", llamadaRes.status);
 
     responder(audioBubble);
 
-    // ✅ Descontar crédito
     const nuevosCreditos = credits - 1;
     setCredits(nuevosCreditos);
     localStorage.setItem("bromaCredits", nuevosCreditos.toString());
 
-    // ✅ Guardar en Firestore
     try {
       const bromaRef = doc(collection(db, "bromas"));
       await setDoc(bromaRef, {
@@ -370,13 +343,11 @@ console.log("📞 Status de la respuesta:", llamadaRes.status);
     } catch (error) {
       console.error("❌ Error guardando la broma en Firestore:", error);
     }
-
   } catch (error) {
     console.error("❌ Error en handleSend:", error);
     responder("❌ Error técnico al hacer la llamada. Inténtalo más tarde.");
   }
 };
-
 
 const iniciarVerificacion = async () => {
   const cleanedPhone = phone.replace(/\s+/g, "");
