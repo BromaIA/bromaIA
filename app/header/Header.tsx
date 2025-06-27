@@ -132,14 +132,15 @@ export default function Header({
     <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-50 bg-black shadow-lg">
       <div className="flex items-center gap-3 relative" ref={menuRef}>
         <button
-        onClick={() => {
-       reset();
-       window.location.hash = "#pantalla1";
-        }}
-       className="text-white font-bold text-lg"
-       >
+         onClick={() => {
+          reset();
+         showSection("pantalla1");
+         }}
+         className="text-white font-bold text-lg"
+        >
         BromaIA
-      </button>
+       </button>
+
 
 
         <button onClick={() => setMenuOpen(!menuOpen)} className="text-white text-2xl">
