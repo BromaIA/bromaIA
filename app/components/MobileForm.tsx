@@ -28,7 +28,13 @@ export default function MobileForm({
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
       setMessage("");
-      // NO ponemos scrollTop aquí
+      setChat([
+        {
+          role: "ia",
+          content:
+            "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+        },
+      ]);
     } else {
       setChat((prev) => [
         ...prev,
@@ -44,36 +50,19 @@ export default function MobileForm({
     }
   };
 
-  // este efecto se lanza UNA VEZ cuando arranca la pantalla 2
   useEffect(() => {
     if (started && chatRef.current) {
       chatRef.current.scrollTop = 0;
     }
   }, [started, initialMessages]);
 
-  useEffect(() => {
-    if (
-      Array.isArray(initialMessages) &&
-      initialMessages.length === 3 &&
-      chat.length === 0
-    ) {
-      const timer = setTimeout(() => {
-        setChat([
-          {
-            role: "ia",
-            content:
-              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
-          },
-        ]);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [initialMessages, chat]);
-
   if (!started) {
     return (
       <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
-        <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer">
+        <h1
+          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
+          onClick={() => setStarted(false)} // ← para volver a pantalla 1
+        >
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -180,21 +169,20 @@ export default function MobileForm({
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
               ✉️ Broma: {initialMessages[2]}
             </div>
+            {chat.map((msg, index) => (
+              <div
+                key={index}
+                className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+                  msg.role === "ia"
+                    ? "bg-white text-black self-start mr-auto max-w-[75%]"
+                    : "bg-pink-400 text-white self-end ml-auto w-fit max-w-[90%]"
+                }`}
+              >
+                {msg.content}
+              </div>
+            ))}
           </div>
         )}
-
-        {chat.map((msg, index) => (
-          <div
-            key={index}
-            className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
-              msg.role === "user"
-                ? "bg-pink-400 text-white self-end ml-auto w-fit max-w-[90%]"
-                : "bg-white text-black self-start mr-auto max-w-[75%]"
-            }`}
-          >
-            {msg.content}
-          </div>
-        ))}
       </div>
 
       <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
@@ -208,7 +196,7 @@ export default function MobileForm({
           />
           <button
             onClick={onSubmit}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
+            className="absolute right-3 top-[calc(50%-10px)] -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
           >
             ›
           </button>
@@ -217,4 +205,3 @@ export default function MobileForm({
     </section>
   );
 }
-
