@@ -50,11 +50,14 @@ export default function MobileForm({
     }
   };
 
-  useEffect(() => {
-    if (started && chatRef.current) {
-      chatRef.current.scrollTop = 0;
-    }
-  }, [started, initialMessages]);
+ useEffect(() => {
+  if (started && chatRef.current) {
+    setTimeout(() => {
+      chatRef.current!.scrollTop = 0;
+    }, 0);
+  }
+}, [started, initialMessages]);
+
 
   if (!started) {
     return (
