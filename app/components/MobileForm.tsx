@@ -23,27 +23,17 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-    if (!started) {
-      setStarted(true);
-      setInitialMessages([phone, voiceOption, message]);
-      setTimeout(() => {
-        window.scrollTo({ top: 0 });
-        if (chatRef.current) chatRef.current.scrollTop = 0;
-      }, 10);
-      setMessage("");
-      return;
-    }
-    // Enviar nuevo mensaje del usuario
-    if (message.trim() !== "") {
-      setChat((prev) => [...prev, { role: "user", content: message }]);
-      setTimeout(() => {
-        setChat((prev) => [
-          ...prev,
-          { role: "ia", content: "🤖 Esto es una respuesta generada por IA (modo demo)." },
-        ]);
-      }, 800);
-      setMessage("");
-    }
+    setStarted(true);
+
+    setInitialMessages([phone, voiceOption, message]);
+    handleSend();
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      if (chatRef.current) chatRef.current.scrollTop = 0;
+    }, 10);
+
+    setMessage("");
   };
 
   useEffect(() => {
@@ -56,8 +46,7 @@ export default function MobileForm({
         setChat([
           {
             role: "ia",
-            content:
-              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
           },
         ]);
       }, 800);
@@ -169,6 +158,8 @@ export default function MobileForm({
 
   return (
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
+      <div className="text-[32px] font-bold px-4 pt-3 cursor-pointer" onClick={() => setStarted(false)}>BromaIA</div>
+
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
@@ -194,7 +185,7 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`rounded-2xl px-4 py-2 text-sm max-w-fit whitespace-pre-wrap break-words ${
+            className={`rounded-2xl px-4 py-2 text-sm break-words max-w-[80%] whitespace-pre-wrap ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -211,7 +202,7 @@ export default function MobileForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu broma..."
-            rows={1}
+            rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
             onFocus={() => {
               setTimeout(() => {
@@ -220,7 +211,15 @@ export default function MobileForm({
             }}
           />
           <button
-            onClick={onSubmit}
+            onClick={() => {
+              if (message.trim()) {
+                setChat((prev) => [...prev, { role: "user", content: message.trim() }]);
+                setTimeout(() => {
+                  setChat((prev) => [...prev, { role: "ia", content: "🤖 Esta es una respuesta de IA." }]);
+                }, 1000);
+                setMessage("");
+              }
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
           >
             ›
