@@ -23,19 +23,25 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-    setStarted(true);
 
-    // ← Evita que la pantalla 2 empiece desplazada
+    // Capturamos los valores antes de vaciar el mensaje
+    const phoneValue = phone;
+    const voiceValue = voiceOption;
+    const msgValue = message.trim();
+
+    setInitialMessages([phoneValue, voiceValue, msgValue]);
+    setStarted(true); // ← activamos pantalla 2
+
     setTimeout(() => {
-      if (chatRef.current) chatRef.current.scrollTop = 0;
+      if (chatRef.current) {
+        chatRef.current.scrollTop = 0; // ← forzamos scroll arriba del todo
+      }
     }, 100);
 
-    setInitialMessages([phone, voiceOption, message]);
     handleSend();
 
-    const userMessage = message.trim();
-    if (userMessage) {
-      setChat((prev) => [...prev, { role: "user", content: userMessage }]);
+    if (msgValue) {
+      setChat((prev) => [...prev, { role: "user", content: msgValue }]);
 
       setTimeout(() => {
         setChat((prev) => [
@@ -48,7 +54,7 @@ export default function MobileForm({
       }, 1000);
     }
 
-    setMessage("");
+    setMessage(""); // ← se borra después de guardar
   };
 
   useEffect(() => {
@@ -166,14 +172,13 @@ export default function MobileForm({
           overscrollBehavior: "contain",
         }}
       >
-        {/* 3 mensajes iniciales dinámicos */}
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-              📱 Teléfono: {phone}
+              📱 Teléfono: {initialMessages[0]}
             </div>
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-              🗣️ Voz: {voiceOption}
+              🗣️ Voz: {initialMessages[1]}
             </div>
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               ✉️ Broma: {initialMessages[2]}
@@ -181,7 +186,6 @@ export default function MobileForm({
           </div>
         )}
 
-        {/* Conversación */}
         {chat.map((msg, index) => (
           <div
             key={index}
@@ -196,7 +200,6 @@ export default function MobileForm({
         ))}
       </div>
 
-      {/* Input rosa fijo */}
       <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
         <div className="relative w-full py-3">
           <textarea
@@ -222,3 +225,4 @@ export default function MobileForm({
     </section>
   );
 }
+
