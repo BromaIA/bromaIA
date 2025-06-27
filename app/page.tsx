@@ -244,7 +244,7 @@ const handleSend = async () => {
     return;
   }
 
-  const verificarNumero = async (numero: string) => {
+  const verificarNumeroDesdeAPI = async (numero: string) => {
     try {
       const res = await fetch("/api/verificar-numero", {
         method: "POST",
@@ -260,7 +260,7 @@ const handleSend = async () => {
     }
   };
 
-  const numeroEsValido = await verificarNumero(phone);
+  const numeroEsValido = await verificarNumeroDesdeAPI(phone);
   if (!numeroEsValido) {
     setChat((prev) => [
       ...prev,
@@ -285,8 +285,8 @@ const handleSend = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telefono: phone,
-        voz: voiceOption,
         mensaje: message,
+        voz: voiceOption, // aunque se fije en backend, lo enviamos igual
         userPhone: userName || "desconocido",
       }),
     });
@@ -327,6 +327,7 @@ const handleSend = async () => {
     setProcessing(false);
   }
 };
+
 
 
 const iniciarVerificacion = async () => {
