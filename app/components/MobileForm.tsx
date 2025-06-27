@@ -23,10 +23,15 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
+    setStarted(true);
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      if (chatRef.current) chatRef.current.scrollTop = 0;
+    }, 10);
 
     setInitialMessages([phone, voiceOption, message]);
     handleSend();
-    setStarted(true);
 
     const userMessage = message.trim();
     if (userMessage) {
@@ -54,7 +59,10 @@ export default function MobileForm({
 
   if (!started) {
     return (
-      <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
+      <section
+        ref={chatRef}
+        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
+      >
         <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
         </h1>
@@ -100,6 +108,13 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
+            onFocus={() => {
+              setTimeout(() => {
+                if (chatRef.current) {
+                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
@@ -117,7 +132,14 @@ export default function MobileForm({
             className="mr-2 mt-1 w-4 h-4"
           />
           <label>
-            Acepto los <a href="#terminos" className="underline hover:text-gray-300">términos y condiciones</a> y la <a href="#privacidad" className="underline hover:text-gray-300">política de privacidad</a>
+            Acepto los{" "}
+            <a href="#terminos" className="underline hover:text-gray-300">
+              términos y condiciones
+            </a>{" "}
+            y la{" "}
+            <a href="#privacidad" className="underline hover:text-gray-300">
+              política de privacidad
+            </a>
           </label>
         </div>
 
@@ -139,7 +161,12 @@ export default function MobileForm({
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+        }}
       >
+        {/* 3 mensajes iniciales */}
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
@@ -154,6 +181,7 @@ export default function MobileForm({
           </div>
         )}
 
+        {/* Conversación */}
         {chat.map((msg, index) => (
           <div
             key={index}
@@ -176,6 +204,11 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
+            onFocus={() => {
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
