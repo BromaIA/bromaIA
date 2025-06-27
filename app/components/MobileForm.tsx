@@ -24,24 +24,13 @@ export default function MobileForm({
     setTouched(true);
     if (!aceptaTerminos) return;
 
-    // Capturamos los valores antes de vaciar el mensaje
-    const phoneValue = phone;
-    const voiceValue = voiceOption;
-    const msgValue = message.trim();
-
-    setInitialMessages([phoneValue, voiceValue, msgValue]);
-    setStarted(true); // ← activamos pantalla 2
-
-    setTimeout(() => {
-      if (chatRef.current) {
-        chatRef.current.scrollTop = 0; // ← forzamos scroll arriba del todo
-      }
-    }, 100);
-
+    setInitialMessages([phone, voiceOption, message]);
     handleSend();
+    setStarted(true);
 
-    if (msgValue) {
-      setChat((prev) => [...prev, { role: "user", content: msgValue }]);
+    const userMessage = message.trim();
+    if (userMessage) {
+      setChat((prev) => [...prev, { role: "user", content: userMessage }]);
 
       setTimeout(() => {
         setChat((prev) => [
@@ -54,7 +43,7 @@ export default function MobileForm({
       }, 1000);
     }
 
-    setMessage(""); // ← se borra después de guardar
+    setMessage("");
   };
 
   useEffect(() => {
@@ -65,10 +54,7 @@ export default function MobileForm({
 
   if (!started) {
     return (
-      <section
-        ref={chatRef}
-        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
-      >
+      <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
         <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
         </h1>
@@ -114,13 +100,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
-            onFocus={() => {
-              setTimeout(() => {
-                if (chatRef.current) {
-                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -138,14 +117,7 @@ export default function MobileForm({
             className="mr-2 mt-1 w-4 h-4"
           />
           <label>
-            Acepto los{" "}
-            <a href="#terminos" className="underline hover:text-gray-300">
-              términos y condiciones
-            </a>{" "}
-            y la{" "}
-            <a href="#privacidad" className="underline hover:text-gray-300">
-              política de privacidad
-            </a>
+            Acepto los <a href="#terminos" className="underline hover:text-gray-300">términos y condiciones</a> y la <a href="#privacidad" className="underline hover:text-gray-300">política de privacidad</a>
           </label>
         </div>
 
@@ -167,10 +139,6 @@ export default function MobileForm({
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "contain",
-        }}
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
@@ -208,11 +176,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-            onFocus={() => {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -225,4 +188,3 @@ export default function MobileForm({
     </section>
   );
 }
-
