@@ -61,7 +61,7 @@ export default function MobileForm({
       <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
         <h1
           className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
-          onClick={() => setStarted(false)} // ← para volver a pantalla 1
+          onClick={() => setStarted(false)}
         >
           Broma<span className="text-white">IA</span>
         </h1>
@@ -149,7 +149,14 @@ export default function MobileForm({
   }
 
   return (
-    <section className="w-full min-h-screen bg-black text-white flex flex-col">
+    <section className="w-full min-h-screen bg-black text-white flex flex-col relative">
+      {/* nuevo h1 en pantalla 2 */}
+      <h1
+        className="absolute top-4 left-4 text-[32px] font-extrabold cursor-pointer z-50"
+        onClick={() => setStarted(false)}
+      >
+        Broma<span className="text-white">IA</span>
+      </h1>
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
