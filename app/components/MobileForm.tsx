@@ -28,7 +28,7 @@ export default function MobileForm({
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
       setMessage("");
-      // quitamos scrollTop aquí para no romper el render
+      // NO ponemos scrollTop aquí
     } else {
       setChat((prev) => [
         ...prev,
@@ -44,7 +44,7 @@ export default function MobileForm({
     }
   };
 
-  // este efecto solo se ejecuta cuando inicializamos pantalla 2
+  // este efecto se lanza UNA VEZ cuando arranca la pantalla 2
   useEffect(() => {
     if (started && chatRef.current) {
       chatRef.current.scrollTop = 0;
@@ -147,7 +147,9 @@ export default function MobileForm({
         </div>
 
         {touched && !aceptaTerminos && (
-          <p className="text-red-400 text-sm mb-4">Debes aceptar los términos para continuar.</p>
+          <p className="text-red-400 text-sm mb-4">
+            Debes aceptar los términos para continuar.
+          </p>
         )}
 
         {errorTerminos && (
@@ -215,3 +217,4 @@ export default function MobileForm({
     </section>
   );
 }
+
