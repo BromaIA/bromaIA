@@ -84,6 +84,21 @@ body {
     transform: translateY(0);
   }
 }
+/* Scrollbar negro para toda la web (solo conversación si lo aplicas al contenedor) */
+::-webkit-scrollbar {
+  width: 6px;
+  background-color: black; /* fondo de la barra */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #111; /* parte que se arrastra */
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: black; /* pista de fondo */
+}
+
 .animate-slide-down {
   animation: slideDown 0.2s ease-out;
 }

@@ -72,12 +72,12 @@ export default function MobileForm({
         ref={chatRef}
         className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
       >
-        <h1
-          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
-          onClick={() => setStarted(false)}
-        >
-          Broma<span className="text-white">IA</span>
-        </h1>
+<h1
+  onClick={() => setStarted(false)}
+  className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
+>
+  Broma<span className="text-white">IA</span>
+</h1>
         <h2 className="text-base font-medium text-center mb-6">
           Bromas telefónicas generadas con IA.
         </h2>
@@ -165,7 +165,7 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
