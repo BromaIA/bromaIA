@@ -18,6 +18,7 @@ export default function MobileForm({
   const [started, setStarted] = useState(false);
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
 
   const onSubmit = () => {
@@ -44,6 +45,11 @@ export default function MobileForm({
     }
 
     setMessage("");
+
+    // Scroll al fondo del chat
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 300);
   };
 
   useEffect(() => {
@@ -52,6 +58,7 @@ export default function MobileForm({
     }
   }, [chat]);
 
+  // PANTALLA 1
   if (!started) {
     return (
       <section
@@ -103,13 +110,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
-            onFocus={() => {
-              setTimeout(() => {
-                if (chatRef.current) {
-                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -151,11 +151,12 @@ export default function MobileForm({
     );
   }
 
+  // PANTALLA 2
   return (
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        className="flex-1 overflow-y-auto px-4 pt-4 space-y-4"
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
@@ -176,7 +177,7 @@ export default function MobileForm({
           </div>
         )}
 
-        {/* Conversación */}
+        {/* Mensajes IA / usuario */}
         {chat.map((msg, index) => (
           <div
             key={index}
@@ -189,21 +190,19 @@ export default function MobileForm({
             {msg.content}
           </div>
         ))}
+
+        <div ref={bottomRef} className="h-1" />
       </div>
 
-      <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
-        <div className="relative w-full py-3">
+      {/* Input rosa abajo */}
+      <div className="sticky bottom-0 w-full px-4 bg-black pt-2 pb-4 z-50">
+        <div className="relative w-full">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-            onFocus={() => {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -216,3 +215,4 @@ export default function MobileForm({
     </section>
   );
 }
+
