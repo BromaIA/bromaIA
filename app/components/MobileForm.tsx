@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function MobileForm({
   phone,
@@ -23,24 +23,52 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-    setStarted(true);
 
-    if (initialMessages.length === 0) {
+    if (!started) {
+      setStarted(true);
       setInitialMessages([phone, voiceOption, message]);
-      setChat([
-        { role: "ia", content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆" },
-      ]);
-    } else {
-      setChat((prev) => [...prev, { role: "user", content: message }]);
+      setTimeout(() => {
+        window.scrollTo({ top: 0 });
+        if (chatRef.current) chatRef.current.scrollTop = 0;
+      }, 10);
+      setMessage("");
+      return;
     }
 
-    setTimeout(() => {
-      window.scrollTo({ top: 0 });
-      if (chatRef.current) chatRef.current.scrollTop = 0;
-    }, 10);
+    if (message.trim() !== "") {
+      setChat((prev) => [
+        ...prev,
+        { role: "user", content: message },
+      ]);
+      setMessage("");
 
-    setMessage("");
+      setTimeout(() => {
+        setChat((prev) => [
+          ...prev,
+          { role: "ia", content: "🤖 Estoy procesando tu nueva respuesta..." },
+        ]);
+      }, 600);
+    }
   };
+
+  useEffect(() => {
+    if (
+      Array.isArray(initialMessages) &&
+      initialMessages.length === 3 &&
+      chat.length === 0
+    ) {
+      const timer = setTimeout(() => {
+        setChat([
+          {
+            role: "ia",
+            content:
+              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+          },
+        ]);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [initialMessages, chat]);
 
   if (!started) {
     return (
@@ -171,7 +199,7 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
