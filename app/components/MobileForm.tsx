@@ -32,22 +32,6 @@ export default function MobileForm({
 
     setInitialMessages([phone, voiceOption, message]);
     handleSend();
-
-    const userMessage = message.trim();
-    if (userMessage) {
-      setChat((prev) => [...prev, { role: "user", content: userMessage }]);
-
-      setTimeout(() => {
-        setChat((prev) => [
-          ...prev,
-          {
-            role: "ia",
-            content: "Esto es una respuesta improvisada por la IA. 😜",
-          },
-        ]);
-      }, 1000);
-    }
-
     setMessage("");
   };
 
