@@ -23,17 +23,27 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-    setStarted(true);
-
-    setInitialMessages([phone, voiceOption, message]);
-    handleSend();
-
-    setTimeout(() => {
-      window.scrollTo({ top: 0 });
-      if (chatRef.current) chatRef.current.scrollTop = 0;
-    }, 10);
-
-    setMessage("");
+    if (!started) {
+      setStarted(true);
+      setInitialMessages([phone, voiceOption, message]);
+      setTimeout(() => {
+        window.scrollTo({ top: 0 });
+        if (chatRef.current) chatRef.current.scrollTop = 0;
+      }, 10);
+      setMessage("");
+      return;
+    }
+    // Enviar nuevo mensaje del usuario
+    if (message.trim() !== "") {
+      setChat((prev) => [...prev, { role: "user", content: message }]);
+      setTimeout(() => {
+        setChat((prev) => [
+          ...prev,
+          { role: "ia", content: "🤖 Esto es una respuesta generada por IA (modo demo)." },
+        ]);
+      }, 800);
+      setMessage("");
+    }
   };
 
   useEffect(() => {
@@ -46,7 +56,8 @@ export default function MobileForm({
         setChat([
           {
             role: "ia",
-            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+            content:
+              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
           },
         ]);
       }, 800);
@@ -168,13 +179,13 @@ export default function MobileForm({
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -183,7 +194,7 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+            className={`rounded-2xl px-4 py-2 text-sm max-w-fit whitespace-pre-wrap break-words ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -200,7 +211,7 @@ export default function MobileForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu broma..."
-            rows={2}
+            rows={1}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
             onFocus={() => {
               setTimeout(() => {
