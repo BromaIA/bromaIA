@@ -25,6 +25,11 @@ export default function MobileForm({
     if (!aceptaTerminos) return;
     setStarted(true);
 
+    // ← Evita que la pantalla 2 empiece desplazada
+    setTimeout(() => {
+      if (chatRef.current) chatRef.current.scrollTop = 0;
+    }, 100);
+
     setInitialMessages([phone, voiceOption, message]);
     handleSend();
 
@@ -161,20 +166,20 @@ export default function MobileForm({
           overscrollBehavior: "contain",
         }}
       >
-        
-{initialMessages.length === 3 && (
-  <div className="flex flex-col space-y-3">
-    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-      📱 Teléfono: {phone}
-    </div>
-    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-      🗣️ Voz: {voiceOption}
-    </div>
-    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-      ✉️ Broma: {initialMessages[2]}
-    </div>
-  </div>
-)}
+        {/* 3 mensajes iniciales dinámicos */}
+        {initialMessages.length === 3 && (
+          <div className="flex flex-col space-y-3">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              📱 Teléfono: {phone}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              🗣️ Voz: {voiceOption}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              ✉️ Broma: {initialMessages[2]}
+            </div>
+          </div>
+        )}
 
         {/* Conversación */}
         {chat.map((msg, index) => (
@@ -191,6 +196,7 @@ export default function MobileForm({
         ))}
       </div>
 
+      {/* Input rosa fijo */}
       <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
         <div className="relative w-full py-3">
           <textarea
