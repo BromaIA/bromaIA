@@ -23,17 +23,28 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-    setStarted(true);
-
-    setInitialMessages([phone, voiceOption, message]);
-    handleSend();
-
-    setTimeout(() => {
-      window.scrollTo({ top: 0 });
-      if (chatRef.current) chatRef.current.scrollTop = 0;
-    }, 10);
-
-    setMessage("");
+    if (!started) {
+      setInitialMessages([phone, voiceOption, message]);
+      setStarted(true);
+      setMessage("");
+      setTimeout(() => {
+        window.scrollTo({ top: 0 });
+        if (chatRef.current) chatRef.current.scrollTop = 0;
+      }, 10);
+    } else {
+      // En pantalla 2: añadir nuevo mensaje del usuario y simular respuesta de IA
+      setChat((prev) => [
+        ...prev,
+        { role: "user", content: message },
+      ]);
+      setTimeout(() => {
+        setChat((prev) => [
+          ...prev,
+          { role: "ia", content: "🤖 Vale, buena broma. ¿Quieres otra?" },
+        ]);
+      }, 1000);
+      setMessage("");
+    }
   };
 
   useEffect(() => {
@@ -109,13 +120,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
-            onFocus={() => {
-              setTimeout(() => {
-                if (chatRef.current) {
-                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -161,18 +165,21 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-hide"
-        style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+        }}
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-max text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-max text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-max text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -181,7 +188,7 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`rounded-2xl px-4 py-2 text-sm break-words max-w-max ${
+            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -198,13 +205,8 @@ export default function MobileForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu broma..."
-            rows={2}
+            rows={1}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-            onFocus={() => {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
