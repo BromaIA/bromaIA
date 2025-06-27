@@ -32,7 +32,6 @@ export default function MobileForm({
         if (chatRef.current) chatRef.current.scrollTop = 0;
       }, 10);
     } else {
-      // En pantalla 2: añadir nuevo mensaje del usuario y simular respuesta de IA
       setChat((prev) => [
         ...prev,
         { role: "user", content: message },
@@ -137,11 +136,11 @@ export default function MobileForm({
             className="mr-2 mt-1 w-4 h-4"
           />
           <label>
-            Acepto los {" "}
+            Acepto los{" "}
             <a href="#terminos" className="underline hover:text-gray-300">
               términos y condiciones
             </a>{" "}
-            y la {" "}
+            y la{" "}
             <a href="#privacidad" className="underline hover:text-gray-300">
               política de privacidad
             </a>
@@ -173,13 +172,13 @@ export default function MobileForm({
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -188,10 +187,10 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
+            className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
               msg.role === "user"
-                ? "bg-pink-400 text-white self-end ml-auto break-words"
-                : "bg-white text-black self-start mr-auto break-words"
+                ? "bg-pink-400 text-white self-end ml-auto w-fit max-w-[90%]"
+                : "bg-white text-black self-start mr-auto max-w-[75%]"
             }`}
           >
             {msg.content}
