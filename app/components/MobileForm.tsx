@@ -27,10 +27,11 @@ export default function MobileForm({
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
       setMessage("");
-      setTimeout(() => {
-        window.scrollTo({ top: 0 });
-        if (chatRef.current) chatRef.current.scrollTop = 0;
-      }, 10);
+      // Eliminamos scrollTo para no bloquear el desplazamiento libre
+      // setTimeout(() => {
+      //   window.scrollTo({ top: 0 });
+      //   if (chatRef.current) chatRef.current.scrollTop = 0;
+      // }, 10);
     } else {
       setChat((prev) => [
         ...prev,
