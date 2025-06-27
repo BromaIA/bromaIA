@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../lib/firebase";
@@ -48,8 +49,6 @@ export default function Header({
   const registerRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-
-  
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -132,17 +131,19 @@ export default function Header({
     <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-50 bg-black shadow-lg">
       <div className="flex items-center gap-3 relative" ref={menuRef}>
         <button
-        onClick={() => {
-       reset();
-       window.location.hash = "#pantalla1";
-        }}
-       className="text-white font-bold text-lg"
-       >
-        BromaIA
-      </button>
+          onClick={() => {
+            reset();
+            window.location.hash = "#pantalla1";
+          }}
+          className="text-white font-bold text-lg"
+        >
+          BromaIA
+        </button>
 
-
-        <button onClick={() => setMenuOpen(!menuOpen)} className="text-white text-2xl">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-white text-2xl relative -top-1"
+        >
           ☰
         </button>
 
@@ -197,34 +198,30 @@ export default function Header({
             >
               👤
             </button>
-{showProfileMenu && (
-  <div
-    ref={profileRef}
-    className="absolute right-0 mt-2 w-56 bg-white text-black rounded-2xl shadow-lg z-50 p-4 space-y-3"
-  >
-    <p className="text-sm font-semibold text-gray-700">
-      Sesión iniciada: <span className="font-bold text-black">{userName}</span>
-    </p>
-
-    <button
-      onClick={() => {
-        showSection("historial");
-        setShowProfileMenu(false);
-      }}
-      className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm transition"
-    >
-      📜 Historial de bromas
-    </button>
-
-    <button
-      onClick={logoutFunction}
-      className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-100 hover:bg-red-200 text-sm text-red-600 transition"
-    >
-      🚪 Cerrar sesión
-    </button>
-  </div>
-)}
-
+            {showProfileMenu && (
+              <div
+                className="absolute right-0 mt-2 w-56 bg-white text-black rounded-2xl shadow-lg z-50 p-4 space-y-3"
+              >
+                <p className="text-sm font-semibold text-gray-700">
+                  Sesión iniciada: <span className="font-bold text-black">{userName}</span>
+                </p>
+                <button
+                  onClick={() => {
+                    showSection("historial");
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm transition"
+                >
+                  📜 Historial de bromas
+                </button>
+                <button
+                  onClick={logoutFunction}
+                  className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-100 hover:bg-red-200 text-sm text-red-600 transition"
+                >
+                  🚪 Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (
