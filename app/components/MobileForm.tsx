@@ -23,32 +23,26 @@ export default function MobileForm({
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
-
     if (!started) {
       setStarted(true);
       setInitialMessages([phone, voiceOption, message]);
-      setTimeout(() => {
-        window.scrollTo({ top: 0 });
-        if (chatRef.current) chatRef.current.scrollTop = 0;
-      }, 10);
-      setMessage("");
-      return;
-    }
-
-    if (message.trim() !== "") {
-      setChat((prev) => [
-        ...prev,
-        { role: "user", content: message },
-      ]);
-      setMessage("");
+    } else {
+      setChat((prev) => [...prev, { role: "user", content: message }]);
 
       setTimeout(() => {
         setChat((prev) => [
           ...prev,
-          { role: "ia", content: "🤖 Estoy procesando tu nueva respuesta..." },
+          {
+            role: "ia",
+            content: "🤖 Vale, ya está hecho. ¿Quieres gastar otra broma?",
+          },
         ]);
-      }, 600);
+      }, 800);
     }
+    setTimeout(() => {
+      if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }, 10);
+    setMessage("");
   };
 
   useEffect(() => {
@@ -124,13 +118,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
-            onFocus={() => {
-              setTimeout(() => {
-                if (chatRef.current) {
-                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
@@ -184,13 +171,13 @@ export default function MobileForm({
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words whitespace-pre-wrap">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words whitespace-pre-wrap">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words whitespace-pre-wrap">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -218,11 +205,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-            onFocus={() => {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
