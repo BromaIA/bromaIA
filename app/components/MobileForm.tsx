@@ -19,9 +19,22 @@ export default function MobileForm({
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
-  const [userName, setUserName] = useState<string | null>(null);
 
   const onSubmit = () => {
+    if (!message.trim()) return;
+
+    setChat((prev) => [...prev, { role: "user", content: message }]);
+    setMessage("");
+
+    setTimeout(() => {
+      setChat((prev) => [
+        ...prev,
+        { role: "ia", content: "🤖 Esta es una respuesta de ejemplo de la IA. Pronto será real." },
+      ]);
+    }, 800);
+  };
+
+  const onAccept = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
@@ -38,39 +51,23 @@ export default function MobileForm({
   };
 
   useEffect(() => {
-    const nombreGuardado = localStorage.getItem("userName");
-    if (nombreGuardado) {
-      setUserName(nombreGuardado);
-    }
-  }, []);
-
-  useEffect(() => {
     if (
       Array.isArray(initialMessages) &&
       initialMessages.length === 3 &&
       chat.length === 0
     ) {
-      const mensajes: { role: "ia"; content: string }[] = [];
-
-      if (!userName) {
-        mensajes.push({
-          role: "ia",
-          content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
-        });
-      } else {
-        mensajes.push(
-          { role: "ia", content: "📞 Procesando la llamada... espera unos segundos." },
-          { role: "ia", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." }
-        );
-      }
-
       const timer = setTimeout(() => {
-        setChat(mensajes);
+        setChat([
+          {
+            role: "ia",
+            content:
+              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+          },
+        ]);
       }, 800);
-
       return () => clearTimeout(timer);
     }
-  }, [initialMessages, chat, userName]);
+  }, [initialMessages, chat]);
 
   if (!started) {
     return (
@@ -126,16 +123,9 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
-            onFocus={() => {
-              setTimeout(() => {
-                if (chatRef.current) {
-                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }, 300);
-            }}
           />
           <button
-            onClick={onSubmit}
+            onClick={onAccept}
             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
           >
             ›
@@ -150,11 +140,11 @@ export default function MobileForm({
             className="mr-2 mt-1 w-4 h-4"
           />
           <label>
-            Acepto los{" "}
+            Acepto los {" "}
             <a href="#terminos" className="underline hover:text-gray-300">
               términos y condiciones
             </a>{" "}
-            y la{" "}
+            y la {" "}
             <a href="#privacidad" className="underline hover:text-gray-300">
               política de privacidad
             </a>
@@ -220,11 +210,6 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
-            onFocus={() => {
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }, 300);
-            }}
           />
           <button
             onClick={onSubmit}
