@@ -43,6 +43,7 @@ export default function MobileForm({
         ]);
       }, 1000);
       setMessage("");
+      // eliminamos el scrollTop aquí para que no reinicie
     }
   };
 
