@@ -24,32 +24,23 @@ export default function MobileForm({
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
-    setInitialMessages([phone, voiceOption, message]);
+
+    if (initialMessages.length === 0) {
+      setInitialMessages([phone, voiceOption, message]);
+      setChat([
+        { role: "ia", content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆" },
+      ]);
+    } else {
+      setChat((prev) => [...prev, { role: "user", content: message }]);
+    }
+
     setTimeout(() => {
       window.scrollTo({ top: 0 });
       if (chatRef.current) chatRef.current.scrollTop = 0;
     }, 10);
+
     setMessage("");
   };
-
-  useEffect(() => {
-    if (
-      Array.isArray(initialMessages) &&
-      initialMessages.length === 3 &&
-      chat.length === 0
-    ) {
-      const timer = setTimeout(() => {
-        setChat([
-          {
-            role: "ia",
-            content:
-              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
-          },
-        ]);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [initialMessages, chat]);
 
   if (!started) {
     return (
