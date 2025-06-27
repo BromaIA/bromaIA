@@ -244,9 +244,7 @@ const handleSend = async () => {
     return;
   }
 
-  // limpia el chat al iniciar
-  setChat([]);
-
+  // validación del número
   const verificarNumeroDesdeAPI = async (numero: string) => {
     try {
       const res = await fetch("/api/verificar-numero", {
@@ -271,13 +269,13 @@ const handleSend = async () => {
     return;
   }
 
-  // guardar los mensajes iniciales
+  // guardamos valores
   setInitialMessages([phone, voiceOption, message]);
-  setStarted(true);
 
+  // mostramos en el chat
   setChat([
     { role: "user", content: `📱 Teléfono: ${phone}` },
-    { role: "user", content: `🧑‍🎤 Tipo de voz: ${voiceOption}` },
+    { role: "user", content: `🗣️ Tipo de voz: ${voiceOption}` },
     { role: "user", content: `💬 Mensaje: ${message}` },
     {
       role: "ai",
@@ -285,61 +283,66 @@ const handleSend = async () => {
     },
   ]);
 
+  // arrancamos pantalla 2
+  setStarted(true);
   setProcessing(true);
+  setMessage(""); // limpia cuadro rosa
 };
+
 
 const handleConfirmation = async (texto: string) => {
   const respuesta = texto.trim().toLowerCase();
 
   if (respuesta === "sí" || respuesta === "si") {
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "⏳ Procesando la llamada..." },
+    ]);
     try {
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: "⏳ Procesando la llamada..." },
-      ]);
-
-      const response = await fetch("/api/enviar-broma", {
+      const res = await fetch("/api/enviar-broma", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telefono: phone,
-          message, // mismo mensaje
+          message,
           userPhone: userName || "desconocido",
         }),
       });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         setChat((prev) => [
           ...prev,
-          { role: "ai", content: "✅ Broma enviada correctamente. La grabación estará disponible al terminar." },
+          { role: "ai", content: "✅ Broma enviada correctamente. La grabación aparecerá aquí al terminar." },
         ]);
       } else {
         setChat((prev) => [
           ...prev,
-          { role: "ai", content: `❌ Error al enviar la broma: ${data.error || "desconocido"}` },
+          { role: "ai", content: `❌ Error al enviar la broma: ${data?.error || "desconocido"}` },
         ]);
       }
-    } catch (error) {
-      console.error("❌ Error en la llamada:", error);
+    } catch (err) {
+      console.error("❌ Error en la llamada:", err);
       setChat((prev) => [
         ...prev,
         { role: "ai", content: "❌ Error inesperado al procesar la llamada." },
       ]);
+    } finally {
+      setProcessing(false);
+      setMessage("");
     }
-    setProcessing(false);
   } else if (respuesta === "no") {
     setChat((prev) => [
       ...prev,
       { role: "ai", content: "🚫 Broma cancelada. Puedes escribir otro mensaje si quieres." },
     ]);
     setProcessing(false);
+    setMessage("");
   } else {
     setChat((prev) => [
       ...prev,
       { role: "ai", content: '⚠️ Responde con "sí" para confirmar o "no" para cancelar.' },
     ]);
+    setMessage("");
   }
 };
 
@@ -1213,59 +1216,24 @@ const comprarBroma = async (cantidad: number) => {
           pareja. BromaIA es la mejor plataforma de bromas telefónicas con IA en España.
         </p>
       </section>
-
-{started && visibleSection === null && (
-  <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
-    <div className="flex-1 overflow-y-auto px-4 pt-[9rem] pb-24 space-y-4">
-      {initialMessages.length === 3 && (
-        <>
-          <div className="flex justify-end">
-            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-              📱 Teléfono: {initialMessages[0]}
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-              🗣️ Tipo de voz: {initialMessages[1]}
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <div className="bg-[#f472b6] text-white px-4 py-2 rounded-lg max-w-[75%]">
-              ✉️ Mensaje: {initialMessages[2]}
-            </div>
-          </div>
-        </>
-      )}
-
+{started && initialMessages.length === 3 && visibleSection === null && (
+  <section className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 overflow-y-auto">
+    <div className="w-full max-w-xl space-y-4">
       {chat.map((msg, index) => (
         <div
           key={index}
-          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
+            msg.role === "user" ? "bg-pink-400 text-white" : "bg-white text-black"
+          }`}
         >
-          <div
-            className={`${
-              msg.role === "user"
-                ? "bg-[#f472b6] text-white"
-                : "bg-white text-black"
-            } px-4 py-2 rounded-lg max-w-[75%]`}
-          >
-            {msg.content}
-          </div>
+          {msg.content}
         </div>
       ))}
-
-      {processing && (
-        <div className="flex justify-start">
-          <div className="bg-white text-black px-4 py-2 rounded-lg max-w-[75%]">
-            Procesando...
-          </div>
-        </div>
-      )}
-
       <div ref={chatEndRef} />
     </div>
 
-    <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-black">
+    {/* barra de escritura inferior */}
+    <div className="fixed bottom-0 left-0 right-0 py-3 px-4 border-t border-black bg-black">
       <div className="max-w-xl mx-auto relative">
         <textarea
           value={message}
@@ -1280,9 +1248,9 @@ const comprarBroma = async (cantidad: number) => {
               }
             }
           }}
-          placeholder="Escribe tu mensaje..."
-          className="w-full bg-[#f472b6] text-white placeholder-white rounded-full px-4 py-2 pr-10 resize-none focus:outline-none"
-          rows={1}
+          placeholder="Escribe tu respuesta aquí..."
+          className="w-full bg-pink-400 text-white placeholder-white rounded-xl px-4 py-3 text-xs focus:outline-none resize-none"
+          style={{ height: "50px" }}
         />
         <button
           onClick={() => {
@@ -1292,16 +1260,14 @@ const comprarBroma = async (cantidad: number) => {
               handleSend();
             }
           }}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
         >
           ›
         </button>
-
       </div>
     </div>
   </section>
 )}
-
 
 <div id="recaptcha-container" style={{ display: "none" }}></div>
 

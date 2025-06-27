@@ -1,58 +1,75 @@
-import { NextResponse } from "next/server";
-import { collection, getDocs, query, where, addDoc, Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../lib/firebase";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { telefono, voz, mensaje, tipo } = body; // tipo: "gratuita" o "pago"
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const { telefono, message, userPhone, voiceOption } = body;
 
-    // 👉 Contar solo las llamadas gratuitas en total (sin filtrar por mes)
-    const gratuitasQuery = query(
-      collection(db, "bromas"),
-      where("tipo", "==", "gratuita")
-    );
-    const snapshot = await getDocs(gratuitasQuery);
+  const RETELL_API_KEY = process.env.RETELL_API_KEY!;
+  const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID!;
 
-    if (tipo === "gratuita" && snapshot.size >= 192) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "No es posible realizar su broma. Se ha alcanzado el límite de bromas gratuitas. Solo están disponibles las bromas de pago. Lo sentimos.",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Simulación de audio generado
-    const fakeAudio = Buffer.from("SIMULATED_MP3_AUDIO_CONTENT");
-    const fileName = `broma-${Date.now()}.mp3`;
-    const audioRef = ref(storage, `audios/${fileName}`);
-
-    await uploadBytes(audioRef, fakeAudio, {
-      contentType: "audio/mpeg",
-    });
-
-    const audioUrl = await getDownloadURL(audioRef);
-
-    // Guardar en Firestore
-    await addDoc(collection(db, "bromas"), {
-      phone: telefono,
-      voz,
-      mensaje,
-      fecha: Timestamp.now(),
-      audioUrl,
-      tipo,
-    });
-
-    return NextResponse.json({ success: true, audioUrl });
-
-  } catch (error) {
-    console.error("❌ Error al iniciar llamada:", error);
+  if (!RETELL_API_KEY || !RETELL_AGENT_ID) {
     return NextResponse.json(
-      { success: false, error: "Error al generar la broma" },
+      { error: "Faltan claves en .env" },
       { status: 500 }
     );
+  }
+
+  try {
+    // abrimos el websocket
+    const WebSocket = require("ws");
+    const ws = new WebSocket("wss://api.retellai.com/v1/calls", {
+      headers: {
+        Authorization: `Bearer ${RETELL_API_KEY}`,
+      },
+    });
+
+    return await new Promise((resolve, reject) => {
+      ws.on("open", () => {
+        console.log("✅ WebSocket conectado");
+
+        // lanzamos la llamada
+        ws.send(
+          JSON.stringify({
+            agent_id: RETELL_AGENT_ID,
+            phone_number: telefono,
+            voice_id:
+              voiceOption === "voz2"
+                ? "11labs-Santiago"
+                : "11labs-Lucia",
+            input: message,
+            metadata: { userPhone: userPhone ?? "desconocido" },
+          })
+        );
+      });
+
+      ws.on("message", (data: string) => {
+        console.log("📞 Respuesta Retell:", data);
+
+        const parsed = JSON.parse(data);
+        if (parsed.call_id) {
+          resolve(
+            NextResponse.json({
+              success: true,
+              call_id: parsed.call_id,
+            })
+          );
+          ws.close();
+        }
+      });
+
+      ws.on("error", (err: Error) => {
+        console.error("❌ Error WebSocket:", err);
+        reject(
+          NextResponse.json({ error: err.message }, { status: 500 })
+        );
+      });
+
+      ws.on("close", () => {
+        console.log("🔌 WebSocket cerrado");
+      });
+    });
+  } catch (error: any) {
+    console.error("❌ Error general:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
