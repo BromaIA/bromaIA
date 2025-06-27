@@ -28,10 +28,10 @@ export default function MobileForm({
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
       setMessage("");
-      // solo la PRIMERA VEZ hace scroll arriba
+      // SOLO la primera vez subimos arriba del todo
       setTimeout(() => {
         if (chatRef.current) chatRef.current.scrollTop = 0;
-      }, 50);
+      }, 10);
     } else {
       setChat((prev) => [
         ...prev,
@@ -44,7 +44,7 @@ export default function MobileForm({
         ]);
       }, 1000);
       setMessage("");
-      // no tocamos scroll
+      // en mensajes nuevos no tocamos el scroll
     }
   };
 
@@ -166,7 +166,7 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-scroll px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
