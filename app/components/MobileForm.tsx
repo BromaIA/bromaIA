@@ -16,6 +16,7 @@ export default function MobileForm({
 }: any) {
   const [touched, setTouched] = useState(false);
   const [started, setStarted] = useState(false);
+  const [showFullMessages, setShowFullMessages] = useState(true);
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
@@ -27,6 +28,7 @@ export default function MobileForm({
     if (!started) {
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
+      setShowFullMessages(true); // fuerza mostrar todo sin scroll
       setMessage("");
       setChat([
         {
@@ -50,21 +52,20 @@ export default function MobileForm({
     }
   };
 
- useEffect(() => {
-  if (started && chatRef.current) {
-    setTimeout(() => {
-      chatRef.current!.scrollTop = 0;
-    }, 0);
-  }
-}, [started, initialMessages]);
-
+  // al pasar a pantalla 2, quita showFullMessages después de 1 segundo
+  useEffect(() => {
+    if (started) {
+      const timer = setTimeout(() => {
+        setShowFullMessages(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [started]);
 
   if (!started) {
     return (
       <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
-        <h1
-          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
-        >
+        <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer">
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -154,7 +155,9 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
+        className={`flex-1 px-4 pt-4 pb-32 space-y-4 scrollbar-negra ${
+          showFullMessages ? "" : "overflow-y-auto"
+        }`}
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
