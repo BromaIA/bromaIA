@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function MobileForm({
   phone,
@@ -13,112 +13,23 @@ export default function MobileForm({
   aceptaTerminos,
   setAceptaTerminos,
   errorTerminos,
-  userName,
 }: any) {
   const [touched, setTouched] = useState(false);
   const [started, setStarted] = useState(false);
-  const [chat, setChat] = useState<{ role: "user" | "ai"; content: string }[]>([]);
+  const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
-  const [processing, setProcessing] = useState(false);
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
     setInitialMessages([phone, voiceOption, message]);
-
-    if (!phone || !voiceOption || !message) {
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." },
-      ]);
-      return;
-    }
-
-    const verificarNumeroDesdeAPI = async (numero: string) => {
-      try {
-        const res = await fetch("/api/verificar-numero", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ numero }),
-        });
-        const data = await res.json();
-        return data?.valido;
-      } catch (err) {
-        console.error("❌ Error al verificar número:", err);
-        return false;
-      }
-    };
-
-    const numeroEsValido = await verificarNumeroDesdeAPI(phone);
-    if (!numeroEsValido) {
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: "⚠️ Ese número no es válido o no es un móvil. Intenta con otro." },
-      ]);
-      return;
-    }
-
-    setChat((prev) => [
-      ...prev,
-      { role: "ai", content: "📞 Procesando la llamada... espera unos segundos." },
-    ]);
-    setProcessing(true);
-
-    try {
-      const response = await fetch("/api/enviar-broma", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          telefono: phone,
-          mensaje: message,
-          voz: voiceOption,
-          userPhone: userName || "desconocido",
-        }),
-      });
-
-      const rawText = await response.text();
-      let data;
-
-      try {
-        data = JSON.parse(rawText);
-      } catch (error) {
-        console.error("❌ Respuesta no válida:", error, rawText);
-        setChat((prev) => [
-          ...prev,
-          { role: "ai", content: "❌ Error al procesar la respuesta. Inténtalo de nuevo." },
-        ]);
-        return;
-      }
-
-      if (!response.ok || !data.success) {
-        setChat((prev) => [
-          ...prev,
-          { role: "ai", content: `❌ No se pudo hacer la broma: ${data.error || "Error desconocido."}` },
-        ]);
-        return;
-      }
-
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." },
-      ]);
-    } catch (error) {
-      console.error("❌ Error en la llamada:", error);
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: "❌ Error inesperado. Inténtalo más tarde." },
-      ]);
-    } finally {
-      setProcessing(false);
-    }
-
-    setMessage("");
     setTimeout(() => {
       window.scrollTo({ top: 0 });
       if (chatRef.current) chatRef.current.scrollTop = 0;
     }, 10);
+    setMessage("");
   };
 
   useEffect(() => {
@@ -130,7 +41,7 @@ export default function MobileForm({
       const timer = setTimeout(() => {
         setChat([
           {
-            role: "ai",
+            role: "ia",
             content:
               "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
           },
@@ -155,6 +66,7 @@ export default function MobileForm({
         <h2 className="text-base font-medium text-center mb-6">
           Bromas telefónicas generadas con IA.
         </h2>
+
         <p className="text-sm font-semibold text-center mb-2">
           Introduce 📱 de la persona que quieras gastar la broma:
         </p>
@@ -165,6 +77,7 @@ export default function MobileForm({
           placeholder="+34 600000000"
           className="w-[90%] bg-pink-400/90 text-white placeholder-white rounded-full px-4 py-3 mb-6 text-center focus:outline-none"
         />
+
         <p className="text-sm font-semibold text-center mb-2">Elige el tipo de voz:</p>
         <select
           value={voiceOption}
@@ -181,6 +94,7 @@ export default function MobileForm({
           <option value="voz1">Femenina joven</option>
           <option value="voz2">Masculina seria</option>
         </select>
+
         <p className="text-sm font-semibold text-center mb-2">
           La IA improvisa el resto y le pone la voz:
         </p>
@@ -191,6 +105,13 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
+            onFocus={() => {
+              setTimeout(() => {
+                if (chatRef.current) {
+                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
@@ -199,6 +120,7 @@ export default function MobileForm({
             ›
           </button>
         </div>
+
         <div className="flex items-start text-white text-sm text-left w-[90%] mb-2">
           <input
             type="checkbox"
@@ -217,11 +139,13 @@ export default function MobileForm({
             </a>
           </label>
         </div>
+
         {touched && !aceptaTerminos && (
           <p className="text-red-400 text-sm mb-4">
             Debes aceptar los términos para continuar.
           </p>
         )}
+
         {errorTerminos && (
           <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
         )}
@@ -252,10 +176,11 @@ export default function MobileForm({
             </div>
           </div>
         )}
+
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap ${
+            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -265,6 +190,7 @@ export default function MobileForm({
           </div>
         ))}
       </div>
+
       <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
         <div className="relative w-full py-3">
           <textarea
@@ -273,6 +199,11 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
+            onFocus={() => {
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
