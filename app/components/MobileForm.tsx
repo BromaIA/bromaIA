@@ -56,7 +56,7 @@ export default function MobileForm({
     return (
       <section
         ref={chatRef}
-        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-y-auto"
+        className="w-full h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-hidden"
       >
         <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
@@ -147,8 +147,6 @@ export default function MobileForm({
         {errorTerminos && (
           <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
         )}
-
-        <div className="h-[20vh]" /> {/* Espacio para teclado */}
       </section>
     );
   }
