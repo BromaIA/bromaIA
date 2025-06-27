@@ -72,12 +72,12 @@ export default function MobileForm({
         ref={chatRef}
         className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
       >
-<h1
-  onClick={() => setStarted(false)}
-  className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
->
-  Broma<span className="text-white">IA</span>
-</h1>
+        <h1
+          onClick={() => setStarted(false)}
+          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
+        >
+          Broma<span className="text-white">IA</span>
+        </h1>
         <h2 className="text-base font-medium text-center mb-6">
           Bromas telefónicas generadas con IA.
         </h2>
@@ -173,13 +173,13 @@ export default function MobileForm({
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -188,10 +188,10 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
+            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
               msg.role === "user"
-                ? "bg-pink-400 text-white self-end ml-auto"
-                : "bg-white text-black self-start mr-auto"
+                ? "bg-pink-400 text-white self-end ml-auto break-words"
+                : "bg-white text-black self-start mr-auto break-words"
             }`}
           >
             {msg.content}
