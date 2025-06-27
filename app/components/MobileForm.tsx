@@ -161,20 +161,20 @@ export default function MobileForm({
           overscrollBehavior: "contain",
         }}
       >
-        {/* 3 mensajes iniciales */}
-        {initialMessages.length === 3 && (
-          <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-              📱 Teléfono: {initialMessages[0]}
-            </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-              🗣️ Voz: {initialMessages[1]}
-            </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-              ✉️ Broma: {initialMessages[2]}
-            </div>
-          </div>
-        )}
+        
+{initialMessages.length === 3 && (
+  <div className="flex flex-col space-y-3">
+    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+      📱 Teléfono: {phone}
+    </div>
+    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+      🗣️ Voz: {voiceOption}
+    </div>
+    <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+      ✉️ Broma: {initialMessages[2]}
+    </div>
+  </div>
+)}
 
         {/* Conversación */}
         {chat.map((msg, index) => (
