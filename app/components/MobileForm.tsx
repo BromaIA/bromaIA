@@ -54,6 +54,19 @@ export default function MobileForm({
     }
   }, [initialMessages, chat]);
 
+  const handleUserMessage = () => {
+    if (!message.trim()) return;
+    const newMessage = { role: "user" as const, content: message };
+    setChat((prev) => [...prev, newMessage]);
+    setMessage("");
+    setTimeout(() => {
+      setChat((prev) => [
+        ...prev,
+        { role: "ia", content: "💬 La IA ha recibido tu mensaje y está pensando una respuesta..." },
+      ]);
+    }, 600);
+  };
+
   if (!started) {
     return (
       <section
@@ -158,8 +171,6 @@ export default function MobileForm({
 
   return (
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
-      <div className="text-[32px] font-bold px-4 pt-3 cursor-pointer" onClick={() => setStarted(false)}>BromaIA</div>
-
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
@@ -170,13 +181,13 @@ export default function MobileForm({
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               📱 Teléfono: {initialMessages[0]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               🗣️ Voz: {initialMessages[1]}
             </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-fit text-sm">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
               ✉️ Broma: {initialMessages[2]}
             </div>
           </div>
@@ -185,7 +196,7 @@ export default function MobileForm({
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`rounded-2xl px-4 py-2 text-sm break-words max-w-[80%] whitespace-pre-wrap ${
+            className={`max-w-[75%] break-words rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -211,15 +222,7 @@ export default function MobileForm({
             }}
           />
           <button
-            onClick={() => {
-              if (message.trim()) {
-                setChat((prev) => [...prev, { role: "user", content: message.trim() }]);
-                setTimeout(() => {
-                  setChat((prev) => [...prev, { role: "ia", content: "🤖 Esta es una respuesta de IA." }]);
-                }, 1000);
-                setMessage("");
-              }
-            }}
+            onClick={handleUserMessage}
             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
           >
             ›
