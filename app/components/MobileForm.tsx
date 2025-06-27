@@ -52,12 +52,11 @@ export default function MobileForm({
     }
   }, [chat]);
 
-  // PANTALLA 1
   if (!started) {
     return (
       <section
         ref={chatRef}
-        className="w-full h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-hidden"
+        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
       >
         <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
@@ -152,26 +151,32 @@ export default function MobileForm({
     );
   }
 
-  // PANTALLA 2
   return (
-    <section className="w-full h-screen bg-black text-white flex flex-col">
+    <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+        }}
       >
-        {/* Los 3 mensajes iniciales, tal como estaban */}
-        <div className="flex flex-col space-y-3">
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            📱 Teléfono: {initialMessages[0]}
+        {/* 3 mensajes iniciales */}
+        {initialMessages.length === 3 && (
+          <div className="flex flex-col space-y-3">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              📱 Teléfono: {initialMessages[0]}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              🗣️ Voz: {initialMessages[1]}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
+              ✉️ Broma: {initialMessages[2]}
+            </div>
           </div>
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            🗣️ Voz: {initialMessages[1]}
-          </div>
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            ✉️ Broma: {initialMessages[2]}
-          </div>
-        </div>
+        )}
 
+        {/* Conversación */}
         {chat.map((msg, index) => (
           <div
             key={index}
