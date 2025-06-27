@@ -19,27 +19,58 @@ export default function MobileForm({
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
+  const [userName, setUserName] = useState<string | null>(null);
 
   const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
 
+    setInitialMessages([phone, voiceOption, message]);
+    handleSend();
+
     setTimeout(() => {
       window.scrollTo({ top: 0 });
       if (chatRef.current) chatRef.current.scrollTop = 0;
     }, 10);
 
-    setInitialMessages([phone, voiceOption, message]);
-    handleSend();
     setMessage("");
   };
 
   useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    const nombreGuardado = localStorage.getItem("userName");
+    if (nombreGuardado) {
+      setUserName(nombreGuardado);
     }
-  }, [chat]);
+  }, []);
+
+  useEffect(() => {
+    if (
+      Array.isArray(initialMessages) &&
+      initialMessages.length === 3 &&
+      chat.length === 0
+    ) {
+      const mensajes: { role: "ia"; content: string }[] = [];
+
+      if (!userName) {
+        mensajes.push({
+          role: "ia",
+          content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+        });
+      } else {
+        mensajes.push(
+          { role: "ia", content: "📞 Procesando la llamada... espera unos segundos." },
+          { role: "ia", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." }
+        );
+      }
+
+      const timer = setTimeout(() => {
+        setChat(mensajes);
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [initialMessages, chat, userName]);
 
   if (!started) {
     return (
@@ -47,7 +78,10 @@ export default function MobileForm({
         ref={chatRef}
         className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
       >
-        <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
+        <h1
+          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
+          onClick={() => setStarted(false)}
+        >
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -55,7 +89,7 @@ export default function MobileForm({
         </h2>
 
         <p className="text-sm font-semibold text-center mb-2">
-          Introduce 📞 de la persona que quieras gastar la broma:
+          Introduce 📱 de la persona que quieras gastar la broma:
         </p>
         <input
           type="tel"
@@ -150,7 +184,6 @@ export default function MobileForm({
           overscrollBehavior: "contain",
         }}
       >
-        {/* 3 mensajes iniciales */}
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
@@ -165,7 +198,6 @@ export default function MobileForm({
           </div>
         )}
 
-        {/* Conversación */}
         {chat.map((msg, index) => (
           <div
             key={index}
