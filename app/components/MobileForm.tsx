@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function MobileForm({
   phone,
@@ -24,9 +24,15 @@ export default function MobileForm({
     setTouched(true);
     if (!aceptaTerminos) return;
     setStarted(true);
+
     setInitialMessages([phone, voiceOption, message]);
-    setChat((prev) => [...prev, { role: "user", content: message }]);
     handleSend();
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      if (chatRef.current) chatRef.current.scrollTop = 0;
+    }, 10);
+
     setMessage("");
   };
 
@@ -40,8 +46,7 @@ export default function MobileForm({
         setChat([
           {
             role: "ia",
-            content:
-              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
           },
         ]);
       }, 800);
@@ -103,6 +108,13 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
+            onFocus={() => {
+              setTimeout(() => {
+                if (chatRef.current) {
+                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
@@ -148,8 +160,11 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-scroll px-4 pt-4 pb-32 space-y-4"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+        }}
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3">
@@ -187,6 +202,11 @@ export default function MobileForm({
             placeholder="Escribe tu broma..."
             rows={2}
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
+            onFocus={() => {
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
