@@ -13,54 +13,121 @@ export default function MobileForm({
   aceptaTerminos,
   setAceptaTerminos,
   errorTerminos,
+  userName, // <<< importante
 }: any) {
   const [touched, setTouched] = useState(false);
   const [started, setStarted] = useState(false);
-  const [showFullMessages, setShowFullMessages] = useState(true);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     setTouched(true);
     if (!aceptaTerminos) return;
 
     if (!started) {
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
-      setShowFullMessages(true); // fuerza mostrar todo sin scroll
       setMessage("");
+
+      // comprobar registro
+      if (!userName) {
+        setChat([
+          {
+            role: "ia",
+            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+          },
+        ]);
+        return;
+      }
+
+      // si registrado → confirmación
       setChat([
         {
           role: "ia",
-          content:
-            "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+          content: `📞 Vas a enviar la broma al número *${phone}* con la voz *${voiceOption}* y el mensaje:\n\n"${message}".\n\nResponde "sí" para confirmar o "no" para cancelar.`,
         },
       ]);
+      setAwaitingConfirmation(true);
     } else {
-      setChat((prev) => [
-        ...prev,
-        { role: "user", content: message },
-      ]);
-      setTimeout(() => {
+      if (awaitingConfirmation) {
+        const respuesta = message.trim().toLowerCase();
+        setChat((prev) => [...prev, { role: "user", content: message }]);
+        setMessage("");
+
+        if (respuesta === "sí" || respuesta === "si") {
+          try {
+            setChat((prev) => [
+              ...prev,
+              { role: "ia", content: "⏳ Procesando la llamada..." },
+            ]);
+
+            const res = await fetch("/api/enviar-broma", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                telefono: phone,
+                message, // coherente en inglés
+                userPhone: userName || "desconocido",
+              }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+              setChat((prev) => [
+                ...prev,
+                { role: "ia", content: "✅ Broma enviada correctamente. ¡Esperemos la respuesta!" },
+              ]);
+            } else {
+              setChat((prev) => [
+                ...prev,
+                { role: "ia", content: `❌ Error al enviar la broma: ${data.error || "desconocido"}` },
+              ]);
+            }
+          } catch (error) {
+            console.error(error);
+            setChat((prev) => [
+              ...prev,
+              { role: "ia", content: "❌ Error al enviar la broma, inténtalo más tarde." },
+            ]);
+          }
+          setAwaitingConfirmation(false);
+        } else if (respuesta === "no") {
+          setChat((prev) => [
+            ...prev,
+            { role: "ia", content: "🚫 Broma cancelada. Puedes escribir otra si quieres." },
+          ]);
+          setAwaitingConfirmation(false);
+        } else {
+          setChat((prev) => [
+            ...prev,
+            { role: "ia", content: '⚠️ Por favor responde "sí" para confirmar o "no" para cancelar.' },
+          ]);
+        }
+      } else {
+        // chat libre
         setChat((prev) => [
           ...prev,
-          { role: "ia", content: "🤖 Vale, buena broma. ¿Quieres otra?" },
+          { role: "user", content: message },
         ]);
-      }, 1000);
-      setMessage("");
+        setTimeout(() => {
+          setChat((prev) => [
+            ...prev,
+            { role: "ia", content: "🤖 Vale, buena broma. ¿Quieres otra?" },
+          ]);
+        }, 1000);
+        setMessage("");
+      }
     }
   };
 
-  // al pasar a pantalla 2, quita showFullMessages después de 1 segundo
   useEffect(() => {
-    if (started) {
-      const timer = setTimeout(() => {
-        setShowFullMessages(false);
-      }, 1000);
-      return () => clearTimeout(timer);
+    if (started && chatRef.current) {
+      chatRef.current.scrollTop = 0;
     }
-  }, [started]);
+  }, [started, initialMessages]);
 
   if (!started) {
     return (
@@ -155,9 +222,7 @@ export default function MobileForm({
     <section className="w-full min-h-screen bg-black text-white flex flex-col">
       <div
         ref={chatRef}
-        className={`flex-1 px-4 pt-4 pb-32 space-y-4 scrollbar-negra ${
-          showFullMessages ? "" : "overflow-y-auto"
-        }`}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",

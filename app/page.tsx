@@ -244,6 +244,9 @@ const handleSend = async () => {
     return;
   }
 
+  // limpia el chat al iniciar
+  setChat([]);
+
   const verificarNumeroDesdeAPI = async (numero: string) => {
     try {
       const res = await fetch("/api/verificar-numero", {
@@ -251,7 +254,6 @@ const handleSend = async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numero }),
       });
-
       const data = await res.json();
       return data?.valido;
     } catch (err) {
@@ -269,62 +271,75 @@ const handleSend = async () => {
     return;
   }
 
-  // Mostrar mensajes iniciales
-  setChat((prev) => [
-    ...prev,
+  // guardar los mensajes iniciales
+  setInitialMessages([phone, voiceOption, message]);
+  setStarted(true);
+
+  setChat([
     { role: "user", content: `📱 Teléfono: ${phone}` },
     { role: "user", content: `🧑‍🎤 Tipo de voz: ${voiceOption}` },
     { role: "user", content: `💬 Mensaje: ${message}` },
-    { role: "ai", content: "📞 Procesando la llamada... espera unos segundos." },
+    {
+      role: "ai",
+      content: `📞 Vas a enviar la broma al número ${phone} con la voz ${voiceOption} y el mensaje:\n\n"${message}".\n\nResponde "sí" para confirmar o "no" para cancelar.`,
+    },
   ]);
+
   setProcessing(true);
+};
 
-  try {
-    const response = await fetch("/api/enviar-broma", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        telefono: phone,
-        mensaje: message,
-        voz: voiceOption, // aunque se fije en backend, lo enviamos igual
-        userPhone: userName || "desconocido",
-      }),
-    });
+const handleConfirmation = async (texto: string) => {
+  const respuesta = texto.trim().toLowerCase();
 
-    const rawText = await response.text();
-    let data;
-
+  if (respuesta === "sí" || respuesta === "si") {
     try {
-      data = JSON.parse(rawText);
+      setChat((prev) => [
+        ...prev,
+        { role: "ai", content: "⏳ Procesando la llamada..." },
+      ]);
+
+      const response = await fetch("/api/enviar-broma", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telefono: phone,
+          message, // mismo mensaje
+          userPhone: userName || "desconocido",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setChat((prev) => [
+          ...prev,
+          { role: "ai", content: "✅ Broma enviada correctamente. La grabación estará disponible al terminar." },
+        ]);
+      } else {
+        setChat((prev) => [
+          ...prev,
+          { role: "ai", content: `❌ Error al enviar la broma: ${data.error || "desconocido"}` },
+        ]);
+      }
     } catch (error) {
-      console.error("❌ Respuesta no válida:", error, rawText);
+      console.error("❌ Error en la llamada:", error);
       setChat((prev) => [
         ...prev,
-        { role: "ai", content: "❌ Error al procesar la respuesta. Inténtalo de nuevo." },
+        { role: "ai", content: "❌ Error inesperado al procesar la llamada." },
       ]);
-      return;
     }
-
-    if (!response.ok || !data.success) {
-      setChat((prev) => [
-        ...prev,
-        { role: "ai", content: `❌ No se pudo hacer la broma: ${data.error || "Error desconocido."}` },
-      ]);
-      return;
-    }
-
-    setChat((prev) => [
-      ...prev,
-      { role: "ai", content: "✅ Llamada iniciada correctamente. La grabación se guardará al terminar." },
-    ]);
-  } catch (error) {
-    console.error("❌ Error en la llamada:", error);
-    setChat((prev) => [
-      ...prev,
-      { role: "ai", content: "❌ Error inesperado. Inténtalo más tarde." },
-    ]);
-  } finally {
     setProcessing(false);
+  } else if (respuesta === "no") {
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: "🚫 Broma cancelada. Puedes escribir otro mensaje si quieres." },
+    ]);
+    setProcessing(false);
+  } else {
+    setChat((prev) => [
+      ...prev,
+      { role: "ai", content: '⚠️ Responde con "sí" para confirmar o "no" para cancelar.' },
+    ]);
   }
 };
 
@@ -1199,7 +1214,6 @@ const comprarBroma = async (cantidad: number) => {
         </p>
       </section>
 
-
 {started && visibleSection === null && (
   <section className="w-full max-w-xl mx-auto h-screen flex flex-col bg-black text-white overflow-hidden">
     <div className="flex-1 overflow-y-auto px-4 pt-[9rem] pb-24 space-y-4">
@@ -1224,10 +1238,15 @@ const comprarBroma = async (cantidad: number) => {
       )}
 
       {chat.map((msg, index) => (
-        <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+        <div
+          key={index}
+          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+        >
           <div
             className={`${
-              msg.role === "user" ? "bg-[#f472b6] text-white" : "bg-white text-black"
+              msg.role === "user"
+                ? "bg-[#f472b6] text-white"
+                : "bg-white text-black"
             } px-4 py-2 rounded-lg max-w-[75%]`}
           >
             {msg.content}
@@ -1247,22 +1266,37 @@ const comprarBroma = async (cantidad: number) => {
     </div>
 
     <div className="fixed bottom-0 left-0 right-0 bg-black py-3 px-4 border-t border-black">
-
       <div className="max-w-xl mx-auto relative">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (processing) {
+                handleConfirmation(message);
+              } else {
+                handleSend();
+              }
+            }
+          }}
           placeholder="Escribe tu mensaje..."
           className="w-full bg-[#f472b6] text-white placeholder-white rounded-full px-4 py-2 pr-10 resize-none focus:outline-none"
           rows={1}
         />
         <button
-          onClick={handleSend}
+          onClick={() => {
+            if (processing) {
+              handleConfirmation(message);
+            } else {
+              handleSend();
+            }
+          }}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center"
         >
           ›
         </button>
+
       </div>
     </div>
   </section>
