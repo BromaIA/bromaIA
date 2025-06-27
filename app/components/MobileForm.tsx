@@ -73,7 +73,7 @@ export default function MobileForm({
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           onFocus={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          placeholder="+34 600000000"
+          placeholder="Ej: +34 612 345 678"
           className="w-[90%] bg-pink-400/90 text-white placeholder-white rounded-full px-4 py-3 mb-6 text-center focus:outline-none"
         />
 
@@ -147,10 +147,14 @@ export default function MobileForm({
   }
 
   return (
-    <section className="w-full h-screen bg-black text-white flex flex-col">
+    <section className="w-full h-screen bg-black text-white flex flex-col overflow-hidden">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        className="flex-1 px-4 pt-4 pb-32 space-y-4 overflow-y-auto"
+        style={{
+          maxHeight: "calc(100vh - 120px)",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         {initialMessages.length === 3 && (
           <div className="flex flex-col space-y-3 mb-4">
