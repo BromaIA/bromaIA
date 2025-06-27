@@ -28,10 +28,7 @@ export default function MobileForm({
       setInitialMessages([phone, voiceOption, message]);
       setStarted(true);
       setMessage("");
-      // SOLO la primera vez subimos arriba del todo
-      setTimeout(() => {
-        if (chatRef.current) chatRef.current.scrollTop = 0;
-      }, 10);
+      // quitamos scrollTop aquí para no romper el render
     } else {
       setChat((prev) => [
         ...prev,
@@ -44,9 +41,15 @@ export default function MobileForm({
         ]);
       }, 1000);
       setMessage("");
-      // en mensajes nuevos no tocamos el scroll
     }
   };
+
+  // este efecto solo se ejecuta cuando inicializamos pantalla 2
+  useEffect(() => {
+    if (started && chatRef.current) {
+      chatRef.current.scrollTop = 0;
+    }
+  }, [started, initialMessages]);
 
   useEffect(() => {
     if (
@@ -69,14 +72,8 @@ export default function MobileForm({
 
   if (!started) {
     return (
-      <section
-        ref={chatRef}
-        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0"
-      >
-        <h1
-          onClick={() => setStarted(false)}
-          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
-        >
+      <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
+        <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer">
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -150,9 +147,7 @@ export default function MobileForm({
         </div>
 
         {touched && !aceptaTerminos && (
-          <p className="text-red-400 text-sm mb-4">
-            Debes aceptar los términos para continuar.
-          </p>
+          <p className="text-red-400 text-sm mb-4">Debes aceptar los términos para continuar.</p>
         )}
 
         {errorTerminos && (
