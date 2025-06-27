@@ -146,18 +146,16 @@ export default function MobileForm({
     );
   }
 
+  // PANTALLA 2 - CHAT
   return (
     <section className="w-full h-screen bg-black text-white flex flex-col overflow-hidden">
       <div
         ref={chatRef}
-        className="flex-1 px-4 pt-4 pb-32 space-y-4 overflow-y-auto"
-        style={{
-          maxHeight: "calc(100vh - 120px)",
-          WebkitOverflowScrolling: "touch",
-        }}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {initialMessages.length === 3 && (
-          <div className="flex flex-col space-y-3 mb-4">
+        {initialMessages.length === 3 && initialMessages.every((m) => m) && (
+          <>
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
               📱 Teléfono: {initialMessages[0]}
             </div>
@@ -167,7 +165,7 @@ export default function MobileForm({
             <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
               ✉️ Broma: {initialMessages[2]}
             </div>
-          </div>
+          </>
         )}
 
         {chat.map((msg, index) => (
