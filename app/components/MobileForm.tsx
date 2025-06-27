@@ -54,7 +54,10 @@ export default function MobileForm({
 
   if (!started) {
     return (
-      <section className="w-full h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-hidden">
+      <section
+        ref={chatRef}
+        className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-y-auto"
+      >
         <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
         </h1>
@@ -100,6 +103,13 @@ export default function MobileForm({
             placeholder="Escribe tu broma."
             className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
             rows={2}
+            onFocus={() => {
+              setTimeout(() => {
+                if (chatRef.current) {
+                  chatRef.current.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }, 300);
+            }}
           />
           <button
             onClick={onSubmit}
@@ -128,27 +138,6 @@ export default function MobileForm({
           </label>
         </div>
 
-        {/* Texto oculto para SEO */}
-        <section
-          className="text-sm text-white max-w-xl mx-auto text-center mt-10 px-4 leading-relaxed"
-          style={{
-            position: "absolute",
-            left: "-9999px",
-            top: "auto",
-            width: "1px",
-            height: "1px",
-            overflow: "hidden",
-          }}
-        >
-          <p>
-            BromaIA es la nueva forma de hacer <strong>bromas telefónicas</strong> con
-            <strong> inteligencia artificial</strong>. Escribe el mensaje, selecciona una voz
-            y deja que nuestra IA realice la llamada con <strong>voz realista</strong> y
-            <strong> grabación automática</strong>. Comparte bromas originales sin necesidad
-            de hablar tú. Ideal para sorprender, reír o incluso gastar una inocentada.
-          </p>
-        </section>
-
         {touched && !aceptaTerminos && (
           <p className="text-red-400 text-sm mb-4">
             Debes aceptar los términos para continuar.
@@ -158,14 +147,18 @@ export default function MobileForm({
         {errorTerminos && (
           <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
         )}
+
+        <div className="h-[20vh]" /> {/* Espacio para teclado */}
       </section>
     );
   }
 
-  // Pantalla 2 - Chat
   return (
     <section className="w-full h-screen bg-black text-white flex flex-col">
-      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4">
+      <div
+        ref={chatRef}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+      >
         <div className="flex flex-col space-y-3">
           <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
             📱 Teléfono: {initialMessages[0]}
@@ -192,19 +185,20 @@ export default function MobileForm({
         ))}
       </div>
 
-      <div className="fixed bottom-4 w-full px-4">
-        <div className="relative w-full">
-<textarea
-  value={message}
-  onChange={(e) => setMessage(e.target.value)}
-  placeholder="Escribe tu broma."
-  className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 text-left focus:outline-none resize-none"
-  rows={2}
-  onFocus={() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }}
-/>
-
+      <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
+        <div className="relative w-full py-3">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Escribe tu broma..."
+            rows={2}
+            className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
+            onFocus={() => {
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }, 300);
+            }}
+          />
           <button
             onClick={onSubmit}
             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
