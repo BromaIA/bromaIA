@@ -1,33 +1,21 @@
-import { NextResponse } from "next/server";
+// app/api/verificar-numero/route.ts
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { numero } = await req.json();
+    const body = await req.json();
+    const numero = body.numero;
 
-    const response = await fetch("https://api.retellai.com/v1/lookup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.RETELL_API_KEY}`,
-      },
-      body: JSON.stringify({ phone_number: numero }),
-    });
-
-    const rawText = await response.text();
-    let lookup: any;
-    try {
-      lookup = JSON.parse(rawText);
-    } catch (e) {
-      return NextResponse.json({ valido: false, error: "Respuesta no válida" }, { status: 500 });
+    if (!numero || typeof numero !== "string" || numero.length < 9) {
+      return NextResponse.json({ valido: false, error: "Número inválido" }, { status: 400 });
     }
 
-    const esValido =
-      lookup?.phoneNumber &&
-      lookup?.carrier?.type &&
-      lookup.carrier.type.toLowerCase() === "mobile";
+    // Ejemplo de validación: empieza por +34 o 6/7 (número móvil español)
+    const isValid = /^\+?34?(6|7)[0-9]{8}$/.test(numero);
 
-    return NextResponse.json({ valido: esValido });
+    return NextResponse.json({ valido: isValid });
   } catch (error) {
-    return NextResponse.json({ valido: false }, { status: 500 });
+    console.error("❌ Error interno al verificar número:", error);
+    return NextResponse.json({ valido: false, error: "Error interno" }, { status: 500 });
   }
 }

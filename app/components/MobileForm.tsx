@@ -25,12 +25,15 @@ export default function MobileForm({
     if (!aceptaTerminos) return;
     setStarted(true);
 
-    setInitialMessages([phone, voiceOption, message]);
+    const phoneValue = phone.trim();
+    const voiceValue = voiceOption.trim();
+    const msgValue = message.trim();
+
+    setInitialMessages([phoneValue, voiceValue, msgValue]);
     handleSend();
 
-    const userMessage = message.trim();
-    if (userMessage) {
-      setChat((prev) => [...prev, { role: "user", content: userMessage }]);
+    if (msgValue) {
+      setChat((prev) => [...prev, { role: "user", content: msgValue }]);
 
       setTimeout(() => {
         setChat((prev) => [
@@ -123,7 +126,10 @@ export default function MobileForm({
             className="mr-2 mt-1 w-4 h-4"
           />
           <label>
-            Acepto los <a href="#terminos" className="underline hover:text-gray-300">términos y condiciones</a> y la <a href="#privacidad" className="underline hover:text-gray-300">política de privacidad</a>
+            Acepto los{" "}
+            <a href="#terminos" className="underline hover:text-gray-300">términos y condiciones</a>{" "}
+            y la{" "}
+            <a href="#privacidad" className="underline hover:text-gray-300">política de privacidad</a>
           </label>
         </div>
 
@@ -146,22 +152,24 @@ export default function MobileForm({
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
       >
-        <div className="flex flex-col space-y-3">
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            📱 Teléfono: {initialMessages[0]}
+        {initialMessages.length === 3 && (
+          <div className="flex flex-col space-y-3 mb-4">
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+              📱 Teléfono: {initialMessages[0]}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+              🗣️ Voz: {initialMessages[1]}
+            </div>
+            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm break-words">
+              ✉️ Broma: {initialMessages[2]}
+            </div>
           </div>
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            🗣️ Voz: {initialMessages[1]}
-          </div>
-          <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[75%] text-sm">
-            ✉️ Broma: {initialMessages[2]}
-          </div>
-        </div>
+        )}
 
         {chat.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+            className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words ${
               msg.role === "user"
                 ? "bg-pink-400 text-white self-end ml-auto"
                 : "bg-white text-black self-start mr-auto"
@@ -192,4 +200,3 @@ export default function MobileForm({
     </section>
   );
 }
-
