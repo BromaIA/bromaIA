@@ -5,7 +5,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { telefono, message, userPhone, voiceOption } = body;
 
-    // Claves de entorno
     const RETELL_API_KEY = process.env.RETELL_API_KEY!;
     const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_268ed5c70e35b741a2eb603c6f";
 
@@ -17,7 +16,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Formato internacional del número
     const numeroFinal = telefono.startsWith("+34") ? telefono : `+34${telefono}`;
 
     console.log("📦 BODY RECIBIDO", body);
@@ -31,7 +29,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         agent_id: RETELL_AGENT_ID,
         to_number: numeroFinal,
-        from_number: "+34984175959", // Asegúrate de que es tu número de Twilio verificado
+        from_number: "+34984175959", // confirma que esté verificado
         metadata: {
           mensaje: message,
           userPhone: userPhone || "desconocido",
