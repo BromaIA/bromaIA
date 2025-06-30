@@ -486,17 +486,22 @@ const comprarBroma = async (cantidad: number) => {
     name="description"
     content="Crea bromas telefónicas personalizadas con voces de inteligencia artificial. Fácil, rápido y divertido. Grabación incluida."
   />
-  <meta name="keywords" content="bromas telefónicas, IA, voz artificial, llamadas graciosas, bromas con voz, inteligencia artificial, grabar broma" />
+  <meta
+    name="keywords"
+    content="bromas telefónicas, IA, voz artificial, llamadas graciosas, bromas con voz, inteligencia artificial, grabar broma"
+  />
   <meta property="og:title" content="BromaIA - Bromas con inteligencia artificial" />
   <meta
     property="og:description"
     content="Haz bromas telefónicas usando voces generadas por IA. Elige un mensaje y deja que la IA improvise."
   />
   <meta property="og:image" content="https://bromaia.com/og-image.jpg" />
-  <meta property="og:url" content="https://bromaia.com" />
+  <meta property="og:url" content="https://www.bromaia.com" />
   <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://www.bromaia.com/" />
   <link rel="icon" href="/favicon.ico" />
 </Head>
+
 
 
       {visibleSection === "que-es-bromaia" && (
