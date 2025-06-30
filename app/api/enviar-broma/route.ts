@@ -17,6 +17,9 @@ export async function POST(req: Request) {
     }
 
     const numeroFinal = telefono.startsWith("+34") ? telefono : `+34${telefono}`;
+console.log("🟢 DEBUG RETELL_API_KEY:", process.env.RETELL_API_KEY ?? "NO DEFINIDO");
+console.log("🟢 DEBUG RETELL_AGENT_ID:", process.env.RETELL_AGENT_ID ?? "NO DEFINIDO");
+
 
     console.log("📦 BODY RECIBIDO", body);
 
