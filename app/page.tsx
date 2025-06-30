@@ -479,7 +479,7 @@ const comprarBroma = async (cantidad: number) => {
       />
 
      <div id="recaptcha-container"></div>
-
+     
 <Head>
   <title>BromaIA - Bromas telefónicas con IA</title>
   <meta
@@ -498,6 +498,7 @@ const comprarBroma = async (cantidad: number) => {
   <meta property="og:image" content="https://bromaia.com/og-image.jpg" />
   <meta property="og:url" content="https://www.bromaia.com" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.bromaia.com/" />
   <link rel="icon" href="/favicon.ico" />
 </Head>

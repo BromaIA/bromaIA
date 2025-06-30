@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { telefono, message, userPhone, voiceOption } = body;
 
-    // Cargamos claves de entorno
+    // Claves de entorno
     const RETELL_API_KEY = process.env.RETELL_API_KEY!;
     const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_268ed5c70e35b741a2eb603c6f";
 
@@ -17,39 +17,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // Normalizamos el número a formato internacional
+    // Formato internacional del número
     const numeroFinal = telefono.startsWith("+34") ? telefono : `+34${telefono}`;
 
     console.log("📦 BODY RECIBIDO", body);
 
-    let response;
-    try {
-      response = await fetch("https://api.retellai.com/v2/register-phone-call", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RETELL_API_KEY}`,
+    const response = await fetch("https://api.retellai.com/v1/calls", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RETELL_API_KEY}`,
+      },
+      body: JSON.stringify({
+        agent_id: RETELL_AGENT_ID,
+        to_number: numeroFinal,
+        from_number: "+34984175959", // Asegúrate de que es tu número de Twilio verificado
+        metadata: {
+          mensaje: message,
+          userPhone: userPhone || "desconocido",
+          voiceOption: voiceOption || "",
         },
-        body: JSON.stringify({
-          agent_id: RETELL_AGENT_ID,
-          to_number: numeroFinal,
-          from_number: "+34984175959",
-          direction: "outbound",
-          call_type: "phone_call",
-          metadata: {
-            mensaje: message,
-            userPhone: userPhone || "desconocido",
-            voiceOption: voiceOption || "",
-          },
-        }),
-      });
-    } catch (fetchError) {
-      console.error("❌ Error al conectar con Retell:", fetchError);
-      return NextResponse.json(
-        { error: "No se pudo conectar con Retell, revisa tu red o firewall" },
-        { status: 502 }
-      );
-    }
+      }),
+    });
 
     const rawText = await response.text();
     console.log("📄 RAW Retell:", rawText);
@@ -59,7 +48,7 @@ export async function POST(req: Request) {
     try {
       data = JSON.parse(rawText);
     } catch (jsonError) {
-      console.error("❌ Retell devolvió texto inválido:", rawText);
+      console.error("❌ Retell devolvió texto no JSON:", rawText);
       return NextResponse.json(
         { error: "Respuesta inválida de Retell", debug: rawText },
         { status: 500 }
