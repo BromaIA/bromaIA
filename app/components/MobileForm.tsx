@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface MobileFormProps {
   phone: string;
@@ -34,128 +34,85 @@ export default function MobileForm({
   setStarted,
 }: MobileFormProps) {
   const [touched, setTouched] = useState(false);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-  const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
-  const chatRef = useRef<HTMLDivElement>(null);
+  const [chat, setChat] = useState<
+    { role: "user" | "ai"; content: string }[]
+  >([]);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
+  const [processing, setProcessing] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     setTouched(true);
     if (!aceptaTerminos) return;
 
     if (!started) {
-      setInitialMessages([phone, voiceOption, message]);
-      setStarted(true);
-      setMessage("");
-
-      if (!userName) {
+      if (!phone || !voiceOption || !message) {
         setChat([
-          {
-            role: "ia",
-            content:
-              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
-          },
+          { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." },
         ]);
         return;
       }
-
+      setInitialMessages([phone, voiceOption, message]);
+      setStarted(true);
+      setProcessing(true);
       setChat([
+        { role: "user", content: `📱 Teléfono: ${phone}` },
+        { role: "user", content: `🗣️ Voz: ${voiceOption}` },
+        { role: "user", content: `💬 Mensaje: ${message}` },
         {
-          role: "ia",
-          content: `📞 Vas a enviar la broma al número *${phone}* con la voz *${voiceOption}* y el mensaje:\n\n"${message}".\n\nResponde "sí" para confirmar o "no" para cancelar.`,
+          role: "ai",
+          content: `📞 Vas a enviar la broma al número ${phone} con la voz ${voiceOption} y el mensaje:\n\n"${message}".\n\nResponde "sí" para confirmar o "no" para cancelar.`,
         },
       ]);
-      setAwaitingConfirmation(true);
+      setMessage("");
     } else {
-      if (awaitingConfirmation) {
-        const respuesta = message.trim().toLowerCase();
-        setChat((prev) => [...prev, { role: "user", content: message }]);
-        setMessage("");
-
-        if (respuesta === "sí" || respuesta === "si") {
-          try {
-            setChat((prev) => [
-              ...prev,
-              { role: "ia", content: "⏳ Procesando la llamada..." },
-            ]);
-
-            const res = await fetch("/api/enviar-broma", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                telefono: phone,
-                message,
-                userPhone: userName || "desconocido",
-              }),
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-              setChat((prev) => [
-                ...prev,
-                {
-                  role: "ia",
-                  content: `✅ Broma enviada correctamente con ID: ${data.call_id || "desconocido"}`,
-                },
-              ]);
-            } else {
-              setChat((prev) => [
-                ...prev,
-                {
-                  role: "ia",
-                  content: `❌ Error al enviar la broma: ${data.error || "Error desconocido"}`,
-                },
-              ]);
-            }
-          } catch (error) {
-            console.error(error);
-            setChat((prev) => [
-              ...prev,
-              { role: "ia", content: "❌ Error al enviar la broma, inténtalo más tarde." },
-            ]);
-          }
-          setAwaitingConfirmation(false);
-        } else if (respuesta === "no") {
-          setChat((prev) => [
-            ...prev,
-            { role: "ia", content: "🚫 Broma cancelada. Puedes escribir otra si quieres." },
-          ]);
-          setAwaitingConfirmation(false);
-        } else {
-          setChat((prev) => [
-            ...prev,
-            { role: "ia", content: '⚠️ Por favor responde "sí" para confirmar o "no" para cancelar.' },
-          ]);
-        }
-      } else {
+      const respuesta = message.trim().toLowerCase();
+      setChat((prev) => [
+        ...prev,
+        { role: "user", content: message },
+      ]);
+      setMessage("");
+      if (respuesta === "sí" || respuesta === "si") {
         setChat((prev) => [
           ...prev,
-          { role: "user", content: message },
+          { role: "ai", content: "⏳ Procesando la llamada..." },
         ]);
+        // aquí podrías meter la llamada real si quisieras
         setTimeout(() => {
           setChat((prev) => [
             ...prev,
-            { role: "ia", content: "🤖 Vale, buena broma. ¿Quieres otra?" },
+            {
+              role: "ai",
+              content: "✅ Broma enviada correctamente. La grabación aparecerá aquí al terminar.",
+            },
           ]);
-        }, 1000);
-        setMessage("");
+          setProcessing(false);
+        }, 2000);
+      } else if (respuesta === "no") {
+        setChat((prev) => [
+          ...prev,
+          { role: "ai", content: "🚫 Broma cancelada. Puedes escribir otra si quieres." },
+        ]);
+        setProcessing(false);
+      } else {
+        setChat((prev) => [
+          ...prev,
+          { role: "ai", content: '⚠️ Responde con "sí" para confirmar o "no" para cancelar.' },
+        ]);
       }
     }
   };
 
   useEffect(() => {
     if (started && chatRef.current) {
-      chatRef.current.scrollTop = 0;
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [started, initialMessages]);
+  }, [chat, started]);
 
   if (!started) {
     return (
       <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-x-hidden">
-        <h1
-          onClick={() => setStarted(false)}
-          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
-        >
+        <h1 className="text-[42px] font-extrabold leading-tight text-center mb-1">
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -178,12 +135,6 @@ export default function MobileForm({
           value={voiceOption}
           onChange={(e) => setVoiceOption(e.target.value)}
           className="w-[80%] bg-pink-400/90 text-white rounded-full px-4 py-3 mb-6 text-center focus:outline-none appearance-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 1rem center",
-            backgroundSize: "1rem",
-          }}
         >
           <option value="">Selecciona una voz</option>
           <option value="voz1">Femenina joven</option>
@@ -241,6 +192,7 @@ export default function MobileForm({
     );
   }
 
+  // ✅ pantalla 2
   return (
     <section className="w-full min-h-screen bg-black text-white flex flex-col overflow-x-hidden">
       <h1
@@ -251,51 +203,41 @@ export default function MobileForm({
       </h1>
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "contain",
-        }}
+        className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4"
+        style={{ overscrollBehavior: "contain" }}
       >
-        {initialMessages.length === 3 && (
-          <div className="flex flex-col space-y-3">
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
-              📱 Teléfono: {initialMessages[0]}
-            </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
-              🗣️ Voz: {initialMessages[1]}
-            </div>
-            <div className="bg-pink-400 text-white self-end ml-auto px-4 py-2 rounded-2xl max-w-[90%] text-sm break-words whitespace-pre-wrap">
-              ✉️ Broma: {initialMessages[2]}
-            </div>
-            {chat.map((msg, index) => (
-              <div
-                key={index}
-                className={`rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
-                  msg.role === "ia"
-                    ? "bg-white text-black self-start mr-auto max-w-[75%]"
-                    : "bg-pink-400 text-white self-end ml-auto w-fit max-w-[90%]"
-                }`}
-              >
-                {msg.content}
-              </div>
-            ))}
+        {chat.map((msg, i) => (
+          <div
+            key={i}
+            className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap break-words ${
+              msg.role === "user"
+                ? "bg-pink-400 text-white self-end ml-auto w-fit max-w-[90%]"
+                : "bg-white text-black self-start mr-auto max-w-[75%]"
+            }`}
+          >
+            {msg.content}
           </div>
-        )}
+        ))}
       </div>
 
-      <div className="fixed bottom-0 w-full px-4 pb-[env(safe-area-inset-bottom)] bg-black z-50">
-        <div className="relative w-full py-3">
+      <div className="fixed bottom-0 left-0 right-0 py-3 px-4 bg-black border-t border-pink-400">
+        <div className="max-w-xl mx-auto relative">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Escribe tu broma..."
-            rows={1}
-            className="w-full bg-pink-400 text-white placeholder-white rounded-2xl px-4 pr-10 py-3 resize-none focus:outline-none"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
+            placeholder="Escribe tu respuesta..."
+            className="w-full bg-pink-400 text-white placeholder-white rounded-xl px-4 py-3 text-xs focus:outline-none resize-none"
+            style={{ height: "50px" }}
           />
           <button
             onClick={onSubmit}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
           >
             ›
           </button>
