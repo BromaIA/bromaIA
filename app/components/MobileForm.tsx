@@ -41,9 +41,16 @@ export default function MobileForm({
 }: MobileFormProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Auto scroll al final del chat cuando cambia chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
+
+  // Logs para depuración
+  useEffect(() => {
+    console.log("MobileForm - started:", started);
+    console.log("MobileForm - initialMessages.length:", initialMessages.length);
+  }, [started, initialMessages]);
 
   return (
     <>
@@ -152,7 +159,10 @@ export default function MobileForm({
 
       {/* Pantalla 2 en móvil */}
       {started && initialMessages.length === 3 && (
-        <section className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto">
+        <section
+          key={started ? "started" : "not-started"}
+          className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto"
+        >
           <div className="w-full max-w-xl space-y-4">
             {chat.map((msg, index) => (
               <div
