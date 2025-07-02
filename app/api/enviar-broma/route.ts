@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { telefono, message, userPhone, voiceOption } = body;
 
     const RETELL_API_KEY = process.env.RETELL_API_KEY!;
-    const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_268ed5c70e35b741a2eb603c6f";
+    const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_5ffdec4ca98d47828bb7426b8e";
 
     if (!RETELL_API_KEY) {
       console.error("❌ Falta RETELL_API_KEY en .env");
