@@ -13,7 +13,7 @@ export default function MobileForm({
   aceptaTerminos,
   setAceptaTerminos,
   errorTerminos,
-  userName, // <<< importante
+  userName,
 }: any) {
   const [touched, setTouched] = useState(false);
   const [started, setStarted] = useState(false);
@@ -31,18 +31,17 @@ export default function MobileForm({
       setStarted(true);
       setMessage("");
 
-      // comprobar registro
       if (!userName) {
         setChat([
           {
             role: "ia",
-            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+            content:
+              "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
           },
         ]);
         return;
       }
 
-      // si registrado → confirmación
       setChat([
         {
           role: "ia",
@@ -68,29 +67,39 @@ export default function MobileForm({
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 telefono: phone,
-                message, // coherente en inglés
+                message,
                 userPhone: userName || "desconocido",
               }),
             });
 
             const data = await res.json();
+            console.log("📞 data desde móvil:", data);
 
             if (res.ok) {
               setChat((prev) => [
                 ...prev,
-                { role: "ia", content: "✅ Broma enviada correctamente. ¡Esperemos la respuesta!" },
+                {
+                  role: "ia",
+                  content: `✅ Broma enviada correctamente con ID: ${data.call_id || "desconocido"}`,
+                },
               ]);
             } else {
               setChat((prev) => [
                 ...prev,
-                { role: "ia", content: `❌ Error al enviar la broma: ${data.error || "desconocido"}` },
+                {
+                  role: "ia",
+                  content: `❌ Error al enviar la broma: ${data.error || "Error desconocido"}`,
+                },
               ]);
             }
           } catch (error) {
             console.error(error);
             setChat((prev) => [
               ...prev,
-              { role: "ia", content: "❌ Error al enviar la broma, inténtalo más tarde." },
+              {
+                role: "ia",
+                content: "❌ Error al enviar la broma, inténtalo más tarde.",
+              },
             ]);
           }
           setAwaitingConfirmation(false);
@@ -107,7 +116,6 @@ export default function MobileForm({
           ]);
         }
       } else {
-        // chat libre
         setChat((prev) => [
           ...prev,
           { role: "user", content: message },
