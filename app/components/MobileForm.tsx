@@ -41,22 +41,15 @@ export default function MobileForm({
 }: MobileFormProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto scroll al final del chat cuando cambia chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
-
-  // Logs para depuración
-  useEffect(() => {
-    console.log("MobileForm - started:", started);
-    console.log("MobileForm - initialMessages.length:", initialMessages.length);
-  }, [started, initialMessages]);
 
   return (
     <>
       {/* Pantalla 1 en móvil */}
       {!started && (
-        <section className="w-full flex flex-col items-center justify-start px-4 pt-20 pb-20 bg-black text-white">
+        <section className="w-full flex flex-col items-center justify-start px-4 pt-20 pb-20 bg-black text-white overflow-x-hidden">
           <h1 className="text-4xl font-extrabold mb-1">BromaIA</h1>
           <h2 className="text-base font-medium mb-6">
             Bromas telefónicas generadas con IA
@@ -160,18 +153,22 @@ export default function MobileForm({
       {/* Pantalla 2 en móvil */}
       {started && initialMessages.length === 3 && (
         <section
-          key={started ? "started" : "not-started"}
-          className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto"
+          className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto overflow-x-hidden"
+          style={{ maxWidth: "100vw" }}
         >
-          <div className="w-full max-w-xl space-y-4">
+          <div className="w-full max-w-xl space-y-4 flex flex-col">
             {chat.map((msg, index) => (
               <div
                 key={index}
-                className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                className={`inline-block rounded-xl px-3 py-2 text-sm max-w-[80%] break-words whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-pink-400 text-white"
-                    : "bg-white text-black"
+                    ? "bg-pink-400 text-white self-end"
+                    : "bg-white text-black self-start"
                 }`}
+                style={{
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
               >
                 {msg.content}
               </div>
