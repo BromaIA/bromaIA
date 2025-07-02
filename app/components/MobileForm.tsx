@@ -41,15 +41,22 @@ export default function MobileForm({
 }: MobileFormProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Auto scroll al final del chat cuando cambia chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
+
+  // Logs para depuración
+  useEffect(() => {
+    console.log("MobileForm - started:", started);
+    console.log("MobileForm - initialMessages.length:", initialMessages.length);
+  }, [started, initialMessages]);
 
   return (
     <>
       {/* Pantalla 1 en móvil */}
       {!started && (
-        <section className="w-full flex flex-col items-center justify-start px-4 pt-20 pb-20 bg-black text-white overflow-x-hidden">
+        <section className="w-full flex flex-col items-center justify-start px-2 pt-12 pb-20 bg-black text-white overflow-x-hidden">
           <h1 className="text-4xl font-extrabold mb-1">BromaIA</h1>
           <h2 className="text-base font-medium mb-6">
             Bromas telefónicas generadas con IA
@@ -153,19 +160,21 @@ export default function MobileForm({
       {/* Pantalla 2 en móvil */}
       {started && initialMessages.length === 3 && (
         <section
-          className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto overflow-x-hidden"
-          style={{ maxWidth: "100vw" }}
+          key={started ? "started" : "not-started"}
+          className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto"
         >
-          <div className="w-full max-w-xl space-y-4 flex flex-col">
+          <div className="w-full max-w-xl space-y-4">
             {chat.map((msg, index) => (
               <div
                 key={index}
-                className={`inline-block rounded-xl px-3 py-2 text-sm max-w-[80%] break-words whitespace-pre-wrap ${
+                className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-pink-400 text-white self-end"
-                    : "bg-white text-black self-start"
+                    ? "bg-pink-400 text-white"
+                    : "bg-white text-black"
                 }`}
                 style={{
+                  display: "inline-block",
+                  maxWidth: "85%",
                   whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
                 }}
