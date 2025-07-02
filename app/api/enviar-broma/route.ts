@@ -5,71 +5,47 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { telefono, message, userPhone, voiceOption } = body;
 
-    const RETELL_API_KEY = process.env.RETELL_API_KEY!;
-    const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID || "agent_5ffdec4ca98d47828bb7426b8e";
+    // URL de Make (webhook)
+    const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/zyplvlicvtkrcowp0gl8m9868n62nsdf";
 
-    if (!RETELL_API_KEY) {
-      console.error("❌ Falta RETELL_API_KEY en .env");
-      return NextResponse.json(
-        { error: "Falta configuración del servidor" },
-        { status: 500 }
-      );
-    }
+    // Sanitizar número
+    const numeroFinal = telefono.startsWith("+34") ? telefono : `+34984179903`;
 
-    const numeroFinal = telefono.startsWith("+34") ? telefono : `+34${telefono}`;
-console.log("🟢 DEBUG RETELL_API_KEY:", process.env.RETELL_API_KEY ?? "NO DEFINIDO");
-console.log("🟢 DEBUG RETELL_AGENT_ID:", process.env.RETELL_AGENT_ID ?? "NO DEFINIDO");
+    console.log("📦 Enviando al webhook de Make:", {
+      numeroFinal,
+      message,
+      userPhone,
+      voiceOption,
+    });
 
-
-    console.log("📦 BODY RECIBIDO", body);
-
-    const response = await fetch("https://api.retellai.com/v1/calls", {
+    // Enviar a Make
+    const response = await fetch(MAKE_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RETELL_API_KEY}`,
       },
       body: JSON.stringify({
-        agent_id: RETELL_AGENT_ID,
-        to_number: numeroFinal,
-        from_number: "+34984179903", // confirma que esté verificado
-        metadata: {
-          mensaje: message,
-          userPhone: userPhone || "desconocido",
-          voiceOption: voiceOption || "",
-        },
+        telefono: numeroFinal,
+        mensaje: message,
+        userPhone: userPhone || "desconocido",
+        voiceOption: voiceOption || "",
       }),
     });
 
-    const rawText = await response.text();
-    console.log("📄 RAW Retell:", rawText);
-    console.log("🔎 Status Retell:", response.status);
-
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (jsonError) {
-      console.error("❌ Retell devolvió texto no JSON:", rawText);
-      return NextResponse.json(
-        { error: "Respuesta inválida de Retell", debug: rawText },
-        { status: 500 }
-      );
-    }
-
     if (!response.ok) {
-      console.error("❌ Retell devolvió error:", data?.error || data);
+      const text = await response.text();
+      console.error("❌ Error en webhook Make:", text);
       return NextResponse.json(
-        { error: data?.error || "Error desconocido con Retell" },
+        { error: "Error enviando a Make", details: text },
         { status: 500 }
       );
     }
 
-    console.log("✅ Retell OK:", data);
+    console.log("✅ Webhook Make recibió correctamente");
 
     return NextResponse.json({
       success: true,
-      call_id: data.call_id,
-      debug: data,
+      message: "Enviado a Make correctamente",
     });
   } catch (error) {
     console.error("❌ Error general en enviar-broma:", error);
