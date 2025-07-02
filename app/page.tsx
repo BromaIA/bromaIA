@@ -49,8 +49,6 @@ const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.
 
 const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
-const [resetSignal, setResetSignal] = useState<number>(0);
-
 
 const [limiteAlcanzado, setLimiteAlcanzado] = useState(false);
 
@@ -206,7 +204,6 @@ const reset = () => {
   setMessage("");
   setVisibleSection(null);
   setProcessing(false);
-  setResetSignal((prev) => prev + 1);
 };
 
 
@@ -1203,8 +1200,9 @@ const comprarBroma = async (cantidad: number) => {
               aceptaTerminos={aceptaTerminos}
               setAceptaTerminos={setAceptaTerminos}
               errorTerminos={errorTerminos}
-              userName={userName}
-             resetSignal={resetSignal} 
+              userName={userName} 
+             started={started}  // <<< nuevo
+             setStarted={setStarted}  // <<< nuevo
             />
           </div>
         )}

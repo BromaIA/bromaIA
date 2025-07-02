@@ -1,6 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface MobileFormProps {
+  phone: string;
+  setPhone: (v: string) => void;
+  voiceOption: string;
+  setVoiceOption: (v: string) => void;
+  message: string;
+  setMessage: (v: string) => void;
+  handleSend: () => void;
+  aceptaTerminos: boolean;
+  setAceptaTerminos: (v: boolean) => void;
+  errorTerminos: string;
+  userName: string | null;
+  started: boolean;
+  setStarted: (v: boolean) => void;
+}
 
 export default function MobileForm({
   phone,
@@ -14,9 +30,10 @@ export default function MobileForm({
   setAceptaTerminos,
   errorTerminos,
   userName,
-}: any) {
+  started,
+  setStarted,
+}: MobileFormProps) {
   const [touched, setTouched] = useState(false);
-  const [started, setStarted] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [chat, setChat] = useState<{ role: "user" | "ia"; content: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -73,8 +90,6 @@ export default function MobileForm({
             });
 
             const data = await res.json();
-            console.log("📞 data desde móvil:", data);
-
             if (res.ok) {
               setChat((prev) => [
                 ...prev,
@@ -96,10 +111,7 @@ export default function MobileForm({
             console.error(error);
             setChat((prev) => [
               ...prev,
-              {
-                role: "ia",
-                content: "❌ Error al enviar la broma, inténtalo más tarde.",
-              },
+              { role: "ia", content: "❌ Error al enviar la broma, inténtalo más tarde." },
             ]);
           }
           setAwaitingConfirmation(false);
@@ -139,8 +151,11 @@ export default function MobileForm({
 
   if (!started) {
     return (
-      <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0">
-        <h1 className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer">
+      <section className="w-full min-h-screen bg-black text-white flex flex-col justify-start items-center pt-[2vh] px-0 overflow-x-hidden">
+        <h1
+          onClick={() => setStarted(false)}
+          className="text-[52px] font-extrabold leading-tight text-center mb-1 cursor-pointer"
+        >
           Broma<span className="text-white">IA</span>
         </h1>
         <h2 className="text-base font-medium text-center mb-6">
@@ -228,6 +243,12 @@ export default function MobileForm({
 
   return (
     <section className="w-full min-h-screen bg-black text-white flex flex-col overflow-x-hidden">
+      <h1
+        onClick={() => setStarted(false)}
+        className="text-[32px] font-extrabold leading-tight text-center mb-1 cursor-pointer mt-2"
+      >
+        Broma<span className="text-white">IA</span>
+      </h1>
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
