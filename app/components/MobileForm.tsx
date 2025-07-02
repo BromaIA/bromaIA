@@ -227,7 +227,7 @@ export default function MobileForm({
   }
 
   return (
-    <section className="w-full min-h-screen bg-black text-white flex flex-col">
+    <section className="w-full min-h-screen bg-black text-white flex flex-col overflow-x-hidden">
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto px-4 pt-4 pb-32 space-y-4 scrollbar-negra"
