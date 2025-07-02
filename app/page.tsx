@@ -1187,25 +1187,26 @@ const comprarBroma = async (cantidad: number) => {
         )}
 
         {/* ✅ Pantalla 1 MÓVIL */}
-        {!started && !visibleSection && (
-          <div className="block md:hidden w-full">
-            <MobileForm
-              phone={phone}
-              setPhone={setPhone}
-              voiceOption={voiceOption}
-              setVoiceOption={setVoiceOption}
-              message={message}
-              setMessage={setMessage}
-              handleSend={handleSend}
-              aceptaTerminos={aceptaTerminos}
-              setAceptaTerminos={setAceptaTerminos}
-              errorTerminos={errorTerminos}
-              userName={userName} 
-             started={started}  // <<< nuevo
-             setStarted={setStarted}  // <<< nuevo
-            />
-          </div>
-        )}
+{!visibleSection && (
+  <div className="block md:hidden w-full">
+    <MobileForm
+      phone={phone}
+      setPhone={setPhone}
+      voiceOption={voiceOption}
+      setVoiceOption={setVoiceOption}
+      message={message}
+      setMessage={setMessage}
+      handleSend={handleSend}
+      aceptaTerminos={aceptaTerminos}
+      setAceptaTerminos={setAceptaTerminos}
+      errorTerminos={errorTerminos}
+      userName={userName}
+      started={started}
+      setStarted={setStarted}
+    />
+  </div>
+)}
+
 
 {/* Texto SEO invisible para Google */}
       <section
