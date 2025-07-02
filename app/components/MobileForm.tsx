@@ -57,12 +57,12 @@ export default function MobileForm({
       {/* Pantalla 1 en móvil */}
       {!started && (
         <section className="w-full flex flex-col items-center justify-start px-2 pt-12 pb-20 bg-black text-white overflow-x-hidden">
-          <h1 className="text-4xl font-extrabold mb-1">BromaIA</h1>
+          <h1 className="text-6xl font-extrabold mb-1 leading-tight">BromaIA</h1>
           <h2 className="text-base font-medium mb-6">
             Bromas telefónicas generadas con IA
           </h2>
 
-          <div className="text-sm w-full mb-2 text-left whitespace-nowrap">
+          <div className="text-sm w-full mb-2 text-left whitespace-nowrap overflow-hidden text-ellipsis">
             Introduce 📞 de la persona que quieras gastar la broma:
           </div>
           <input
@@ -162,21 +162,19 @@ export default function MobileForm({
         <section
           key={started ? "started" : "not-started"}
           className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 bg-black text-white overflow-y-auto"
+          style={{ overflowX: "hidden" }}
         >
           <div className="w-full max-w-xl space-y-4">
             {chat.map((msg, index) => (
               <div
                 key={index}
-                className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                className={`inline-block rounded-xl px-4 py-3 text-sm whitespace-pre-wrap max-w-[80%] ${
                   msg.role === "user"
                     ? "bg-pink-400 text-white"
                     : "bg-white text-black"
                 }`}
                 style={{
-                  display: "inline-block",
-                  maxWidth: "85%",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
+                  width: msg.role === "user" ? "auto" : "100%",
                 }}
               >
                 {msg.content}
