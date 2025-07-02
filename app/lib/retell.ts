@@ -8,7 +8,7 @@ export async function hacerLlamadaBromaIA(phone: string, prompt: string, voice: 
       },
       body: JSON.stringify({
         phone_number: phone,
-        agent_id: "agent_268ed5c70e35b741a2eb603c6f",
+        agent_id: "agent_5ffdec4ca98d47828bb7426b8e",
         voice: voice,
         username: "retelluser",
         password: "Retelluser123",

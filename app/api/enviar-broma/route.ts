@@ -32,7 +32,7 @@ console.log("🟢 DEBUG RETELL_AGENT_ID:", process.env.RETELL_AGENT_ID ?? "NO DE
       body: JSON.stringify({
         agent_id: RETELL_AGENT_ID,
         to_number: numeroFinal,
-        from_number: "+34984175959", // confirma que esté verificado
+        from_number: "+34984179903", // confirma que esté verificado
         metadata: {
           mensaje: message,
           userPhone: userPhone || "desconocido",
