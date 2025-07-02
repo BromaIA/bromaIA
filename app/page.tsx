@@ -1190,23 +1190,26 @@ const comprarBroma = async (cantidad: number) => {
 {!visibleSection && (
   <div className="block md:hidden w-full">
     <MobileForm
-      phone={phone}
-      setPhone={setPhone}
-      voiceOption={voiceOption}
-      setVoiceOption={setVoiceOption}
-      message={message}
-      setMessage={setMessage}
-      handleSend={handleSend}
-      aceptaTerminos={aceptaTerminos}
-      setAceptaTerminos={setAceptaTerminos}
-      errorTerminos={errorTerminos}
-      userName={userName}
-      started={started}
-      setStarted={setStarted}
-    />
+  phone={phone}
+  setPhone={setPhone}
+  voiceOption={voiceOption}
+  setVoiceOption={setVoiceOption}
+  message={message}
+  setMessage={setMessage}
+  handleSend={handleSend}
+  aceptaTerminos={aceptaTerminos}
+  setAceptaTerminos={setAceptaTerminos}
+  errorTerminos={errorTerminos}
+  userName={userName}
+  started={started}
+  setStarted={setStarted}
+  chat={chat}
+  initialMessages={initialMessages}
+  processing={processing}
+  handleConfirmation={handleConfirmation}
+/>
   </div>
 )}
-
 
 {/* Texto SEO invisible para Google */}
       <section
