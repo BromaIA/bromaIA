@@ -304,11 +304,14 @@ const handleConfirmation = async (texto: string) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telefono: phone,
-          message,
+          mensaje: message,         // <- ahora se llama mensaje
+          voiceOption,              // <- pasamos la voz
           userPhone: userName || "desconocido",
         }),
       });
+
       const data = await res.json();
+
       if (res.ok && data.success) {
         setChat((prev) => [
           ...prev,
@@ -345,7 +348,6 @@ const handleConfirmation = async (texto: string) => {
     setMessage("");
   }
 };
-
 
 
 const iniciarVerificacion = async () => {

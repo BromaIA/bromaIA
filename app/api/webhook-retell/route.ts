@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import twilio from "twilio";
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,13 +8,24 @@ export async function POST(req: NextRequest) {
 
     const RETELL_API_KEY = process.env.RETELL_API_KEY!;
     const RETELL_AGENT_ID = process.env.RETELL_AGENT_ID!;
-    const FROM_NUMBER = process.env.RETELL_FROM_NUMBER!;  // tu número verificado en Retell
+    const TWILIO_SID = process.env.TWILIO_SID!;
+    const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
+    const FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER!;  // tu trunk de Twilio
+
+    if (!RETELL_API_KEY || !RETELL_AGENT_ID || !TWILIO_SID || !TWILIO_AUTH_TOKEN) {
+      console.error("❌ Faltan variables de entorno");
+      return NextResponse.json(
+        { error: "Falta configuración en el servidor (.env)" },
+        { status: 500 }
+      );
+    }
 
     const numeroFinal = telefono.startsWith("+34")
       ? telefono
       : `+34${telefono}`;
 
-    const res = await fetch("https://api.retellai.com/v1/calls", {
+    // REGISTRAR llamada en Retell
+    const res = await fetch("https://api.retellai.com/v2/register-phone-call", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${RETELL_API_KEY}`,
@@ -23,30 +35,53 @@ export async function POST(req: NextRequest) {
         agent_id: RETELL_AGENT_ID,
         to_number: numeroFinal,
         from_number: FROM_NUMBER,
+        direction: "inbound",
         metadata: {
           userPhone,
           mensaje,
-          voz: voiceOption,
+          voiceOption,
         },
       }),
     });
 
     const data = await res.json();
+    console.log("✅ Retell register-phone-call: ", data);
 
-    console.log("✅ Retell respondió: ", data);
-
-    if (data.error) {
+    if (!res.ok || data.error) {
       return NextResponse.json(
-        { error: data.error },
+        { error: data.error || "Error en register-phone-call" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true, call_id: data.call_id });
+    const callId = data.call_id;
+    const sipUri = `sip:${callId}@5t4n6j0wnrl.sip.livekit.cloud`;
+
+    // Iniciar llamada con Twilio
+    const client = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
+    const twilioCall = await client.calls.create({
+      to: sipUri,
+      from: FROM_NUMBER,
+      twiml: `
+        <Response>
+          <Dial>
+            <Sip>${sipUri}</Sip>
+          </Dial>
+        </Response>
+      `,
+    });
+
+    console.log("📞 Llamada Twilio lanzada:", twilioCall.sid);
+
+    return NextResponse.json({
+      success: true,
+      call_id: callId,
+      twilio_sid: twilioCall.sid,
+    });
   } catch (error) {
-    console.error("❌ Error al enviar llamada a Retell:", error);
+    console.error("❌ Error general webhook:", error);
     return NextResponse.json(
-      { error: "Error al enviar la llamada" },
+      { error: "Error general en el servidor" },
       { status: 500 }
     );
   }
