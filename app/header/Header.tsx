@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../lib/firebase";
 
 interface HeaderProps {
   reset: () => void;
@@ -15,7 +13,10 @@ interface HeaderProps {
   setConfirmationResult: (value: any) => void;
   smsError: string;
   setSmsError: (msg: string) => void;
-  verificarCodigo: () => void;
+  verificarCodigo: () => Promise<void>;
+  iniciarSesion: () => Promise<void>;
+  phoneLogin: string;
+  setPhoneLogin: (value: string) => void;
   credits: number;
   setCredits: (n: number) => void;
 }
@@ -32,6 +33,9 @@ export default function Header({
   smsError,
   setSmsError,
   verificarCodigo,
+  iniciarSesion,
+  phoneLogin,
+  setPhoneLogin,
   credits,
   setCredits,
 }: HeaderProps) {
@@ -39,50 +43,9 @@ export default function Header({
   const [showRegister, setShowRegister] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Phone login local state (control dentro de Header)
-  const [phoneLogin, setPhoneLogin] = useState("");
-
   const menuRef = useRef<HTMLDivElement>(null);
   const registerRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-
-  const normalizarTelefono = (numero: string) => {
-    const limpio = numero.replace(/\s+/g, "");
-    if (limpio.startsWith("+34")) return limpio;
-    if (limpio.startsWith("34")) return `+${limpio}`;
-    if (limpio.startsWith("6") || limpio.startsWith("7")) return `+34${limpio}`;
-    return limpio;
-  };
-
-  const iniciarSesion = async () => {
-    const finalPhone = normalizarTelefono(phoneLogin);
-
-    if (!finalPhone || finalPhone.length < 10) {
-      setSmsError("Introduce un número válido.");
-      return;
-    }
-
-    try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => {},
-        });
-      }
-
-      const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, finalPhone, appVerifier);
-      if (!result) throw new Error("Error al obtener el código");
-
-      setConfirmationResult(result);
-      setSmsError("✅ Código enviado.");
-    } catch (error: any) {
-      const mensaje = error.message?.includes("auth/too-many-requests")
-        ? "Demasiados intentos. Espera unos minutos."
-        : "Error al enviar SMS.";
-      setSmsError(`❌ ${mensaje}`);
-    }
-  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

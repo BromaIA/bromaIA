@@ -572,7 +572,7 @@ useEffect(() => {
 
   return (
     <>
-      <Header
+            <Header
         reset={reset}
         showSection={showSection}
         userName={userName}
@@ -584,6 +584,9 @@ useEffect(() => {
         smsError={smsError}
         setSmsError={setSmsError}
         verificarCodigo={verificarCodigo}
+        iniciarSesion={iniciarSesion}
+        phoneLogin={phoneLogin}
+        setPhoneLogin={setPhoneLogin}
         credits={credits}
         setCredits={setCredits}
       />
@@ -1239,14 +1242,14 @@ useEffect(() => {
       </select>
 
       <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-        La IA improvisa el resto y le pone la voz:
+         Escribe como quieres que sea la broma:
       </div>
 
       <div className="relative w-full mb-4" style={{ height: "90px" }}>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="  Escribe tu broma."
+          placeholder="  La IA improvisa el resto y le pone la voz."
           className="w-full h-full bg-pink-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
           style={{
             scrollbarWidth: "none",

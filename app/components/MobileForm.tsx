@@ -62,7 +62,7 @@ export default function MobileForm({
             Bromas telefónicas generadas con IA
           </h2>
 
-          <div className="text-sm w-full mb-2 text-left whitespace-nowrap overflow-hidden text-ellipsis">
+          <div className="text-[0.75rem] w-full mb-2 text-center whitespace-nowrap overflow-hidden text-ellipsis">
             Introduce 📞 de la persona que quieras gastar la broma:
           </div>
           <input
@@ -73,7 +73,7 @@ export default function MobileForm({
             className="w-full bg-pink-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
           />
 
-          <div className="text-sm w-full mb-2 text-left whitespace-nowrap">
+          <div className="text-xs w-full mb-2 text-center whitespace-nowrap overflow-hidden text-ellipsis">
             Elige el tipo de voz:
           </div>
           <select
@@ -88,19 +88,19 @@ export default function MobileForm({
             }}
           >
             <option value="">Selecciona una voz</option>
-            <option value="voz1">Femenina joven</option>
-            <option value="voz2">Masculina seria</option>
+            <option value="voz1">Femenina </option>
+            <option value="voz2">Masculina </option>
           </select>
 
-          <div className="text-sm w-full mb-2 text-left whitespace-nowrap">
-            La IA improvisa el resto y le pone la voz:
+          <div className="text-xs w-full mb-2 text-center whitespace-nowrap overflow-hidden text-ellipsis">
+            Escribe como quieres que sea la broma: 
           </div>
 
           <div className="relative w-full mb-4" style={{ height: "90px" }}>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="  Escribe tu broma."
+              placeholder="  La IA improvisa el resto y le pone la voz."
               className="w-full h-full bg-pink-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
               style={{
                 scrollbarWidth: "none",
