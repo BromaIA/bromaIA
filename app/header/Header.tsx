@@ -142,7 +142,7 @@ export default function Header({
 
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-white text-2xl relative -top-1"
+          className="text-white text-2xl"
         >
           ☰
         </button>

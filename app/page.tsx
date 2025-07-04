@@ -30,6 +30,7 @@ const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.
 
 
 
+
   const [started, setStarted] = useState(false);
   const [initialMessages, setInitialMessages] = useState<string[]>([]);
   const [processing, setProcessing] = useState<boolean>(false);
@@ -39,7 +40,9 @@ const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.
   const [errorTerminos, setErrorTerminos] = useState("");
   const [userName, setUserName] = useState<string | null>(null);
   const [credits, setCredits] = useState<number>(1);
-  const [phone, setPhone] = useState("");
+ const [phone, setPhone] = useState(""); // para el número de la VÍCTIMA de la broma
+const [phoneLogin, setPhoneLogin] = useState(""); // para el NÚMERO DEL USUARIO al registrarse
+
   const [otp, setOtp] = useState("");
   const [mensajeEnviado, setMensajeEnviado] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -48,7 +51,6 @@ const [chat, setChat] = useState<{ role: "user" | "ai"; content: string | React.
   const [bromasDisponibles, setBromasDisponibles] = useState<number>(0);
 
 const [mostrarHistorial, setMostrarHistorial] = useState(false);
-
 
 const [limiteAlcanzado, setLimiteAlcanzado] = useState(false);
 
@@ -71,6 +73,7 @@ useEffect(() => {
 
   
 const [historial, setHistorial] = useState<any[]>([]);
+const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
 
  useEffect(() => {
@@ -235,11 +238,33 @@ const reset = () => {
     }
   }, []);
 
+// añade este estado arriba con tus otros useState
+const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
+
+// handleSend
 const handleSend = async () => {
+  if (!aceptaTerminos) {
+    setErrorTerminos("Debes aceptar los términos para continuar.");
+    return;
+  } else {
+    setErrorTerminos("");
+  }
+
   if (!phone || !voiceOption || !message) {
     setChat((prev) => [
       ...prev,
       { role: "ai", content: "⚠️ Rellena todos los campos antes de enviar la broma." },
+    ]);
+    return;
+  }
+
+  if (esperandoConfirmacion) {
+    setChat((prev) => [
+      ...prev,
+      {
+        role: "ai",
+        content: "⚠️ Responde 'sí' para confirmar o 'no' para cancelar antes de enviar otra broma.",
+      },
     ]);
     return;
   }
@@ -269,43 +294,73 @@ const handleSend = async () => {
     return;
   }
 
-  // guardamos valores
+  let destinatario = "";
+  let remitente = "";
+  let motivo = message;
+
+  const destMatch = message.match(/pregunta\s+por\s+(\w+)|llama\s+a\s+(\w+)/i);
+  if (destMatch) destinatario = destMatch[1] || destMatch[2] || "";
+
+  const remMatch = message.match(/por\s+m[ií],?\s*(\w+)|soy\s+(\w+)/i);
+  if (remMatch) remitente = remMatch[1] || remMatch[2] || "";
+
+  if (destinatario) motivo = motivo.replace(destinatario, "").trim();
+
   setInitialMessages([phone, voiceOption, message]);
 
-  // mostramos en el chat
   setChat([
     { role: "user", content: `📱 Teléfono: ${phone}` },
     { role: "user", content: `🗣️ Tipo de voz: ${voiceOption}` },
     { role: "user", content: `💬 Mensaje: ${message}` },
     {
       role: "ai",
-      content: `📞 Vas a enviar la broma al número ${phone} con la voz ${voiceOption} y el mensaje:\n\n"${message}".\n\nResponde "sí" para confirmar o "no" para cancelar.`,
+      content: `📞 Vas a enviar la broma al número ${phone} con la voz ${voiceOption} y el mensaje: "${message}". Responde "sí" para confirmar o "no" para cancelar.`,
     },
   ]);
 
-  // arrancamos pantalla 2
+  localStorage.setItem("bromaMensaje", message);
+  localStorage.setItem("destinatario", destinatario);
+  localStorage.setItem("remitente", remitente);
+  localStorage.setItem("motivo", motivo);
+
+  setEsperandoConfirmacion(true);
   setStarted(true);
   setProcessing(true);
-  setMessage(""); // limpia cuadro rosa
+  setMessage("");
 };
 
-
+// handleConfirmation
 const handleConfirmation = async (texto: string) => {
   const respuesta = texto.trim().toLowerCase();
+
+  // añade SIEMPRE el mensaje del usuario
+  setChat((prev) => [
+    ...prev,
+    { role: "user", content: texto },
+  ]);
 
   if (respuesta === "sí" || respuesta === "si") {
     setChat((prev) => [
       ...prev,
       { role: "ai", content: "⏳ Procesando la llamada..." },
     ]);
+
     try {
+      const mensaje = localStorage.getItem("bromaMensaje") || "";
+      const destinatario = localStorage.getItem("destinatario") || "";
+      const remitente = localStorage.getItem("remitente") || "";
+      const motivo = localStorage.getItem("motivo") || mensaje;
+
       const res = await fetch("/api/enviar-broma", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telefono: phone,
-          mensaje: message,         // <- ahora se llama mensaje
-          voiceOption,              // <- pasamos la voz
+          mensaje,
+          motivo,
+          destinatario,
+          remitente,
+          voiceOption,
           userPhone: userName || "desconocido",
         }),
       });
@@ -317,6 +372,46 @@ const handleConfirmation = async (texto: string) => {
           ...prev,
           { role: "ai", content: "✅ Broma enviada correctamente. La grabación aparecerá aquí al terminar." },
         ]);
+
+        const audioUrl = data.data?.audio_url || "";
+        if (audioUrl) {
+          setChat((prev) => [
+            ...prev,
+            {
+              role: "ai",
+              content: (
+                <div>
+                  <p>▶️ Aquí tienes la grabación de la broma:</p>
+                  <audio controls src={audioUrl} className="mt-2 rounded w-full" />
+                  <div className="flex gap-2 mt-2 text-sm">
+                    <a
+                      href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${encodeURIComponent(audioUrl)}`}
+                      target="_blank"
+                      className="underline text-green-400"
+                    >
+                      Compartir por WhatsApp
+                    </a>
+                    <span>|</span>
+                    <a href={audioUrl} download className="underline text-blue-400">
+                      Descargar audio
+                    </a>
+                  </div>
+                </div>
+              ),
+            },
+          ]);
+
+          await fetch("/api/guardar-broma", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone,
+              audioUrl,
+              mensaje,
+              userPhone: userName || "desconocido",
+            }),
+          });
+        }
       } else {
         setChat((prev) => [
           ...prev,
@@ -332,14 +427,19 @@ const handleConfirmation = async (texto: string) => {
     } finally {
       setProcessing(false);
       setMessage("");
+      setEsperandoConfirmacion(false); // liberamos confirmación
     }
   } else if (respuesta === "no") {
     setChat((prev) => [
       ...prev,
-      { role: "ai", content: "🚫 Broma cancelada. Puedes escribir otro mensaje si quieres." },
+      {
+        role: "ai",
+        content: "🚫 Broma cancelada. Puedes escribir otro mensaje si quieres.",
+      },
     ]);
     setProcessing(false);
     setMessage("");
+    setEsperandoConfirmacion(false); // liberamos confirmación
   } else {
     setChat((prev) => [
       ...prev,
@@ -349,44 +449,7 @@ const handleConfirmation = async (texto: string) => {
   }
 };
 
-
-const iniciarVerificacion = async () => {
-  const cleanedPhone = phone.replace(/\s+/g, "");
-  const finalPhone = cleanedPhone.startsWith("+34")
-    ? cleanedPhone
-    : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
-
-  if (!finalPhone || finalPhone.length < 10) {
-    setSmsError("Introduce un número de teléfono válido.");
-    return;
-  }
-
-  const containerExists = typeof window !== 'undefined' && document.getElementById("recaptcha-container");
-  if (!containerExists) {
-    setSmsError("Error interno: reCAPTCHA no encontrado.");
-    return;
-  }
-
-  try {
-    // Si ya existe, límpialo antes
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-      window.recaptchaVerifier = null;
-    }
-
-window.recaptchaVerifier = new (RecaptchaVerifier as any)(
-  auth,
-  "recaptcha-container",
-  {
-    size: "invisible",
-    callback: () => {},
-    "expired-callback": () => {
-      setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
-    },
-  }
-);
-
-
+// 🟣 ENVIAR FORMULARIO DE CONTACTO
 const enviarFormularioContacto = async (formulario: {
   nombre: string;
   email: string;
@@ -411,6 +474,41 @@ const enviarFormularioContacto = async (formulario: {
   }
 };
 
+// 🟣 INICIAR VERIFICACIÓN (SMS)
+const iniciarVerificacion = async () => {
+  const cleanedPhone = phone.replace(/\s+/g, "");
+  const finalPhone = cleanedPhone.startsWith("+34")
+    ? cleanedPhone
+    : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
+
+  if (!finalPhone || finalPhone.length < 10) {
+    setSmsError("Introduce un número de teléfono válido.");
+    return;
+  }
+
+  const containerExists = typeof window !== 'undefined' && document.getElementById("recaptcha-container");
+  if (!containerExists) {
+    setSmsError("Error interno: reCAPTCHA no encontrado.");
+    return;
+  }
+
+  try {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
+    }
+
+    window.recaptchaVerifier = new (RecaptchaVerifier as any)(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {},
+        "expired-callback": () => {
+          setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
+        },
+      }
+    );
 
     const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
     setConfirmationResult(result);
@@ -427,15 +525,7 @@ const enviarFormularioContacto = async (formulario: {
   }
 };
 
-
-useEffect(() => {
-  console.log("Sección visible:", visibleSection);
-  console.log("SECCIÓN ACTIVA:", visibleSection);
-  console.log("MENSAJES EN CHAT:", chat);
-  console.log("Mensajes iniciales guardados:", [phone, voiceOption, message]);
-  console.log("initialMessages render:", initialMessages);
-}, []);
-
+// 🟣 COMPRAR BROMA
 const comprarBroma = async (cantidad: number) => {
   try {
     const res = await fetch("/api/checkout_sessions", {
@@ -457,6 +547,15 @@ const comprarBroma = async (cantidad: number) => {
     alert("Hubo un error al procesar el pago.");
   }
 };
+
+// 🟣 DEBUG (esto está bien, lo puedes dejar así)
+useEffect(() => {
+  console.log("Sección visible:", visibleSection);
+  console.log("SECCIÓN ACTIVA:", visibleSection);
+  console.log("MENSAJES EN CHAT:", chat);
+  console.log("Mensajes iniciales guardados:", [phone, voiceOption, message]);
+  console.log("initialMessages render:", initialMessages);
+}, []);
 
 
   return (
@@ -1105,9 +1204,9 @@ const comprarBroma = async (cantidad: number) => {
               </div>
               <input
                 type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+34 600000000"
+                value={phoneLogin}
+                onChange={(e) => setPhoneLogin(e.target.value)}
+                placeholder="Tu número de registro"
                 className="w-full bg-pink-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
               />
 
@@ -1231,51 +1330,95 @@ const comprarBroma = async (cantidad: number) => {
           pareja. BromaIA es la mejor plataforma de bromas telefónicas con IA en España.
         </p>
       </section>
+
 {started && initialMessages.length === 3 && visibleSection === null && (
-  <section className="w-full flex flex-col items-center justify-start px-4 pt-4 pb-28 overflow-y-auto">
-    <div className="w-full max-w-xl space-y-4">
+  <section className="w-full flex flex-col-reverse items-center justify-end px-4 pb-28 pt-4 overflow-y-auto min-h-screen bg-black">
+    <div className="w-full max-w-xl flex flex-col gap-2 pb-20">
       {chat.map((msg, index) => (
         <div
           key={index}
-          className={`rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
-            msg.role === "user" ? "bg-pink-400 text-white" : "bg-white text-black"
-          }`}
+          className={`
+            max-w-[75%] px-4 py-3 rounded-xl text-sm break-words
+            ${msg.role === "user"
+              ? "bg-pink-400 text-white self-end text-right"
+              : "bg-white text-black self-start text-left"}
+          `}
+          style={{ alignSelf: msg.role === "user" ? "flex-end" : "flex-start" }}
         >
           {msg.content}
         </div>
       ))}
+
+      {/* reproductor de audio al final */}
+      {audioUrl && (
+        <div className="flex flex-col items-center mt-4 gap-2 w-full">
+          <audio controls src={audioUrl} className="w-full rounded" />
+          <div className="flex gap-2 justify-center text-xs">
+            <a
+              href={audioUrl}
+              download
+              className="bg-pink-500 text-white rounded px-3 py-2"
+            >
+              Descargar grabación
+            </a>
+            <a
+              href={`https://wa.me/?text=Mira la broma que grabé con BromaIA: ${audioUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-500 text-white rounded px-3 py-2"
+            >
+              Compartir por WhatsApp
+            </a>
+          </div>
+        </div>
+      )}
+
       <div ref={chatEndRef} />
     </div>
 
     {/* barra de escritura inferior */}
     <div className="fixed bottom-0 left-0 right-0 py-3 px-4 border-t border-black bg-black">
-      <div className="max-w-xl mx-auto relative">
+      <div className="max-w-xl mx-auto relative flex items-center">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
+              if (message.trim()) {
+                setChat((prev) => [
+                  ...prev,
+                  { role: "user", content: message }
+                ]);
+                if (processing) {
+                  handleConfirmation(message);
+                } else {
+                  handleSend();
+                }
+                setMessage("");
+              }
+            }
+          }}
+          placeholder="Escribe tu respuesta aquí..."
+          className="flex-1 bg-pink-400 text-white placeholder-white rounded-xl pl-4 pr-10 py-3 text-xs focus:outline-none resize-none"
+          style={{ height: "50px" }}
+        />
+        <button
+          onClick={() => {
+            if (message.trim()) {
+              setChat((prev) => [
+                ...prev,
+                { role: "user", content: message }
+              ]);
               if (processing) {
                 handleConfirmation(message);
               } else {
                 handleSend();
               }
+              setMessage("");
             }
           }}
-          placeholder="Escribe tu respuesta aquí..."
-          className="w-full bg-pink-400 text-white placeholder-white rounded-xl px-4 py-3 text-xs focus:outline-none resize-none"
-          style={{ height: "50px" }}
-        />
-        <button
-          onClick={() => {
-            if (processing) {
-              handleConfirmation(message);
-            } else {
-              handleSend();
-            }
-          }}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
         >
           ›
         </button>
@@ -1283,6 +1426,8 @@ const comprarBroma = async (cantidad: number) => {
     </div>
   </section>
 )}
+
+
 
 <div id="recaptcha-container" style={{ display: "none" }}></div>
 

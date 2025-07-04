@@ -6,7 +6,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 
 interface Broma {
   phone: string;
-  audioUrl: string;
+  audioUrl?: string; // hacerlo opcional para prevenir fallos
   date: string;
   mensaje?: string;
 }
@@ -26,7 +26,7 @@ export default function HistorialBromas({ userPhone }: { userPhone: string }) {
       );
       setBromas(ordenadas);
     } catch (error) {
-      console.error("Error cargando bromas:", error);
+      console.error("❌ Error cargando bromas:", error);
     } finally {
       setLoading(false);
     }
@@ -62,31 +62,37 @@ export default function HistorialBromas({ userPhone }: { userPhone: string }) {
             <p className="text-xs text-zinc-500 mb-2">
               🗓️ {new Date(broma.date).toLocaleString()}
             </p>
-            <audio
-              controls
-              src={broma.audioUrl}
-              className="w-full mb-3 rounded"
-              style={{ outline: "none" }}
-            />
-            <div className="flex gap-3 text-sm">
-              <a
-                href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${encodeURIComponent(
-                  broma.audioUrl
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-green-400"
-              >
-                Compartir por WhatsApp
-              </a>
-              <a
-                href={broma.audioUrl}
-                download
-                className="underline text-blue-400"
-              >
-                Descargar audio
-              </a>
-            </div>
+            {broma.audioUrl ? (
+              <>
+                <audio
+                  controls
+                  src={broma.audioUrl}
+                  className="w-full mb-3 rounded"
+                  style={{ outline: "none" }}
+                />
+                <div className="flex gap-3 text-sm">
+                  <a
+                    href={`https://api.whatsapp.com/send?text=¡Escucha esta broma! ${encodeURIComponent(
+                      broma.audioUrl
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-green-400"
+                  >
+                    Compartir por WhatsApp
+                  </a>
+                  <a
+                    href={broma.audioUrl}
+                    download
+                    className="underline text-blue-400"
+                  >
+                    Descargar audio
+                  </a>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-zinc-400">⏳ Grabación en proceso...</p>
+            )}
           </div>
         ))
       )}
