@@ -91,25 +91,40 @@ const [audioUrl, setAudioUrl] = useState<string | null>(null);
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (
-      Array.isArray(initialMessages) &&
-      initialMessages.length === 3 &&
-      chat.length === 0 &&
-      !processing
-    ) {
-      const timer = setTimeout(() => {
-        setChat([
-          {
-            role: "ai",
-            content: "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
-          },
-        ]);
-      }, 800);
+useEffect(() => {
+  if (
+    Array.isArray(initialMessages) &&
+    initialMessages.length === 3 &&
+    chat.length === 0 &&
+    !processing &&
+    !userName
+  ) {
+    const timer = setTimeout(() => {
+      setChat((prev) => {
+        // solo añadir el aviso si no existe ya
+        const yaExiste = prev.some(
+          (m) =>
+            typeof m.content === "string" &&
+            m.content.includes("tienes que estar registrado")
+        );
+        if (!yaExiste) {
+          return [
+            ...prev,
+            {
+              role: "ai",
+              content:
+                "⚠️ Para hacer la broma gratis tienes que estar registrado. Inicia sesión arriba 👆",
+            },
+          ];
+        }
+        return prev;
+      });
+    }, 800);
 
-      return () => clearTimeout(timer);
-    }
-  }, [initialMessages, chat, processing]);
+    return () => clearTimeout(timer);
+  }
+}, [initialMessages, chat, processing, userName]);
+
 
   useEffect(() => {
     if (started && visibleSection === null) {
@@ -122,6 +137,10 @@ const [audioUrl, setAudioUrl] = useState<string | null>(null);
   }, [chat]);
 
  const verificarCodigo = async () => {
+  if (!confirmationResult) {
+    setSmsError("Primero solicita el código de verificación.");
+    return;
+  }
   try {
     const result = await confirmationResult.confirm(otp);
     const user = result.user;
@@ -130,34 +149,76 @@ const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
-      // Usuario nuevo: damos 1 broma
+      // Usuario nuevo
       await setDoc(userRef, {
         phoneNumber: user.phoneNumber,
         credits: 1,
       });
-
       setCredits(1);
       localStorage.setItem("bromaCredits", "1");
     } else {
-      // Usuario existente: mantenemos sus créditos
       const data = userSnap.data();
       const existingCredits = data?.credits ?? 0;
-
       setCredits(existingCredits);
       localStorage.setItem("bromaCredits", existingCredits.toString());
     }
 
-    // Guardamos el nombre
     setUserName(user.phoneNumber);
     localStorage.setItem("userName", user.phoneNumber);
-
     setSmsError("✅ Verificación exitosa. ¡Bienvenido!");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al verificar código:", error);
-    setSmsError("❌ Código incorrecto. Inténtalo de nuevo.");
+    const msg =
+      error.message?.includes("expired") || error.message?.includes("invalid")
+        ? "❌ Código inválido o caducado. Intenta de nuevo."
+        : "❌ Error al verificar el código. Comprueba tu conexión.";
+    setSmsError(msg);
   }
 };
 
+const iniciarSesion = async () => {
+  if (!phoneLogin) {
+    setSmsError("Introduce un número de teléfono para iniciar sesión.");
+    return;
+  }
+
+  const normalizarTelefono = (numero: string) => {
+    const limpio = numero.replace(/\s+/g, "");
+    if (limpio.startsWith("+34")) return limpio;
+    if (limpio.startsWith("34")) return `+${limpio}`;
+    if (limpio.startsWith("6") || limpio.startsWith("7")) return `+34${limpio}`;
+    return limpio;
+  };
+
+  const finalPhone = normalizarTelefono(phoneLogin);
+
+  if (!finalPhone || finalPhone.length < 10) {
+    setSmsError("Introduce un número válido.");
+    return;
+  }
+
+  try {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+        callback: () => {},
+      });
+    }
+
+    const appVerifier = window.recaptchaVerifier;
+    const result = await signInWithPhoneNumber(auth, finalPhone, appVerifier);
+
+    if (!result) throw new Error("Error al obtener el código");
+
+    setConfirmationResult(result);
+    setSmsError("✅ Código enviado.");
+  } catch (error: any) {
+    const mensaje = error.message?.includes("auth/too-many-requests")
+      ? "Demasiados intentos. Espera unos minutos."
+      : "Error al enviar SMS.";
+    setSmsError(`❌ ${mensaje}`);
+  }
+};
 
   const actualizarBromas = (nuevaCantidad: number) => {
     setBromasDisponibles(nuevaCantidad);
@@ -199,6 +260,8 @@ useEffect(() => {
 
   cargarHistorial();
 }, [userName]);
+
+
 
 const reset = () => {
   setStarted(false);
@@ -474,57 +537,6 @@ const enviarFormularioContacto = async (formulario: {
   }
 };
 
-// 🟣 INICIAR VERIFICACIÓN (SMS)
-const iniciarVerificacion = async () => {
-  const cleanedPhone = phone.replace(/\s+/g, "");
-  const finalPhone = cleanedPhone.startsWith("+34")
-    ? cleanedPhone
-    : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
-
-  if (!finalPhone || finalPhone.length < 10) {
-    setSmsError("Introduce un número de teléfono válido.");
-    return;
-  }
-
-  const containerExists = typeof window !== 'undefined' && document.getElementById("recaptcha-container");
-  if (!containerExists) {
-    setSmsError("Error interno: reCAPTCHA no encontrado.");
-    return;
-  }
-
-  try {
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-      window.recaptchaVerifier = null;
-    }
-
-    window.recaptchaVerifier = new (RecaptchaVerifier as any)(
-      auth,
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: () => {},
-        "expired-callback": () => {
-          setSmsError("El reCAPTCHA ha expirado. Inténtalo de nuevo.");
-        },
-      }
-    );
-
-    const result = await signInWithPhoneNumber(auth, finalPhone, window.recaptchaVerifier);
-    setConfirmationResult(result);
-    setSmsError("✅ Código enviado. Revisa tu SMS.");
-  } catch (error: any) {
-    console.error("Error al enviar SMS:", error);
-    let mensaje = "No se pudo enviar el SMS. Inténtalo más tarde.";
-    if (error.code === "auth/too-many-requests") {
-      mensaje = "Demasiados intentos. Espera unos minutos.";
-    } else if (error.code === "auth/invalid-phone-number") {
-      mensaje = "Número de teléfono inválido.";
-    }
-    setSmsError(`❌ ${mensaje}`);
-  }
-};
-
 // 🟣 COMPRAR BROMA
 const comprarBroma = async (cantidad: number) => {
   try {
@@ -565,15 +577,12 @@ useEffect(() => {
         showSection={showSection}
         userName={userName}
         setUserName={setUserName}
-        phone={phone}
-        setPhone={setPhone}
         otp={otp}
         setOtp={setOtp}
         confirmationResult={confirmationResult}
         setConfirmationResult={setConfirmationResult}
         smsError={smsError}
         setSmsError={setSmsError}
-        iniciarVerificacion={iniciarVerificacion}
         verificarCodigo={verificarCodigo}
         credits={credits}
         setCredits={setCredits}
@@ -1191,101 +1200,102 @@ useEffect(() => {
 
 
       <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 pt-24">
-        {!started && !visibleSection && (
-          <div className="hidden md:block w-full">
-            <section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center pt-20">
-              <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
-              <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
-                Bromas telefónicas generadas con IA.
-              </h2>
+       {!started && !visibleSection && (
+  <div className="hidden md:block w-full">
+    <section id="pantalla1" className="w-full max-w-md mx-auto px-4 text-center pt-20">
+      <h1 className="text-6xl font-extrabold mb-1 text-white">BromaIA</h1>
+      <h2 className="text-lg font-medium mb-6 text-white sm:whitespace-normal whitespace-nowrap">
+        Bromas telefónicas generadas con IA.
+      </h2>
 
-              <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-                Introduce 📞 de la persona que quieras gastar la broma:
-              </div>
-              <input
-                type="tel"
-                value={phoneLogin}
-                onChange={(e) => setPhoneLogin(e.target.value)}
-                placeholder="Tu número de registro"
-                className="w-full bg-pink-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
-              />
+      <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+        Introduce 📞 de la persona que quieras gastar la broma:
+      </div>
+      <input
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="+34 600000000"
+        className="w-full bg-pink-400 text-white placeholder-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none"
+      />
 
-              <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-                Elige el tipo de voz:
-              </div>
-              <select
-                value={voiceOption}
-                onChange={(e) => setVoiceOption(e.target.value)}
-                className="w-full bg-pink-400 text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Selecciona una voz</option>
-                <option value="voz1">Femenina joven</option>
-                <option value="voz2">Masculina seria</option>
-              </select>
+      <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+        Elige el tipo de voz:
+      </div>
+      <select
+        value={voiceOption}
+        onChange={(e) => setVoiceOption(e.target.value)}
+        className="w-full bg-pink-400 text-white rounded-full px-4 py-3 mb-4 text-sm text-center focus:outline-none appearance-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 1rem center',
+          backgroundSize: '1rem',
+        }}
+      >
+        <option value="">Selecciona una voz</option>
+        <option value="voz1">Femenina joven</option>
+        <option value="voz2">Masculina seria</option>
+      </select>
 
-              <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
-                La IA improvisa el resto y le pone la voz:
-              </div>
+      <div className="text-sm text-white mb-2 sm:text-center text-left sm:ml-0 ml-[2%] whitespace-nowrap">
+        La IA improvisa el resto y le pone la voz:
+      </div>
 
-              <div className="relative w-full mb-4" style={{ height: "90px" }}>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="  Escribe tu broma."
-                  className="w-full h-full bg-pink-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
-                  style={{
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                />
-                <button
-                  onClick={handleSend}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
-                >
-                  ›
-                </button>
+      <div className="relative w-full mb-4" style={{ height: "90px" }}>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="  Escribe tu broma."
+          className="w-full h-full bg-pink-400 text-white placeholder-white px-4 pr-10 py-3 rounded-xl resize-none text-sm text-left leading-tight focus:outline-none"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        />
+        <button
+          onClick={handleSend}
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white w-5 h-5 rounded-full flex items-center justify-center text-xs"
+        >
+          ›
+        </button>
 
-                <style jsx>{`
-                  textarea::-webkit-scrollbar {
-                    display: none;
-                  }
-                  textarea::placeholder {
-                    text-align: left;
-                  }
-                `}</style>
-              </div>
-              {/* Checkbox de términos */}
-              <div className="flex items-start mb-4 text-white text-sm text-left ml-[2%]">
-                <input
-                  type="checkbox"
-                  checked={aceptaTerminos}
-                  onChange={() => setAceptaTerminos(!aceptaTerminos)}
-                  className="mr-2 mt-1 w-4 h-4"
-                />
-                <label>
-                  Acepto los{" "}
-                  <a href="#terminos" className="underline text-white hover:text-gray-300">
-                    términos y condiciones
-                  </a>{" "}
-                  y la{" "}
-                  <a href="#privacidad" className="underline text-white hover:text-gray-300">
-                    política de privacidad
-                  </a>
-                </label>
-              </div>
+        <style jsx>{`
+          textarea::-webkit-scrollbar {
+            display: none;
+          }
+          textarea::placeholder {
+            text-align: left;
+          }
+        `}</style>
+      </div>
 
-              {errorTerminos && (
-                <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
-              )}
-            </section>
-          </div>
-        )}
+      {/* Checkbox de términos */}
+      <div className="flex items-start mb-4 text-white text-sm text-left ml-[2%]">
+        <input
+          type="checkbox"
+          checked={aceptaTerminos}
+          onChange={() => setAceptaTerminos(!aceptaTerminos)}
+          className="mr-2 mt-1 w-4 h-4"
+        />
+        <label>
+          Acepto los{" "}
+          <a href="#terminos" className="underline text-white hover:text-gray-300">
+            términos y condiciones
+          </a>{" "}
+          y la{" "}
+          <a href="#privacidad" className="underline text-white hover:text-gray-300">
+            política de privacidad
+          </a>
+        </label>
+      </div>
+
+      {errorTerminos && (
+        <p className="text-red-400 text-sm mb-4">{errorTerminos}</p>
+      )}
+    </section>
+  </div>
+)}
 
         {/* ✅ Pantalla 1 MÓVIL */}
 {!visibleSection && (

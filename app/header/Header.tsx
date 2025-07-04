@@ -9,15 +9,12 @@ interface HeaderProps {
   showSection: (section: string) => void;
   userName: string | null;
   setUserName: (name: string | null) => void;
-  phone: string;
-  setPhone: (value: string) => void;
   otp: string;
   setOtp: (value: string) => void;
   confirmationResult: any;
   setConfirmationResult: (value: any) => void;
   smsError: string;
   setSmsError: (msg: string) => void;
-  iniciarVerificacion: () => void;
   verificarCodigo: () => void;
   credits: number;
   setCredits: (n: number) => void;
@@ -28,15 +25,12 @@ export default function Header({
   showSection,
   userName,
   setUserName,
-  phone,
-  setPhone,
   otp,
   setOtp,
   confirmationResult,
   setConfirmationResult,
   smsError,
   setSmsError,
-  iniciarVerificacion,
   verificarCodigo,
   credits,
   setCredits,
@@ -45,44 +39,23 @@ export default function Header({
   const [showRegister, setShowRegister] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  // Phone login local state (control dentro de Header)
+  const [phoneLogin, setPhoneLogin] = useState("");
+
   const menuRef = useRef<HTMLDivElement>(null);
   const registerRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-      if (registerRef.current && !registerRef.current.contains(e.target as Node)) {
-        setShowRegister(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setShowProfileMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleMenuClick = (section: string) => {
-    showSection(section);
-    setMenuOpen(false);
-  };
-
-  const logoutFunction = () => {
-    setUserName(null);
-    setCredits(0);
-    localStorage.removeItem("userName");
-    localStorage.removeItem("bromaCredits");
-    setShowProfileMenu(false);
+  const normalizarTelefono = (numero: string) => {
+    const limpio = numero.replace(/\s+/g, "");
+    if (limpio.startsWith("+34")) return limpio;
+    if (limpio.startsWith("34")) return `+${limpio}`;
+    if (limpio.startsWith("6") || limpio.startsWith("7")) return `+34${limpio}`;
+    return limpio;
   };
 
   const iniciarSesion = async () => {
-    const cleanedPhone = phone.replace(/\s+/g, "");
-    const finalPhone = cleanedPhone.startsWith("+34")
-      ? cleanedPhone
-      : `+34${cleanedPhone.startsWith("34") ? cleanedPhone.slice(2) : cleanedPhone}`;
+    const finalPhone = normalizarTelefono(phoneLogin);
 
     if (!finalPhone || finalPhone.length < 10) {
       setSmsError("Introduce un número válido.");
@@ -112,6 +85,22 @@ export default function Header({
   };
 
   useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+      if (registerRef.current && !registerRef.current.contains(e.target as Node)) {
+        setShowRegister(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const success = searchParams.get("success");
     if (success) {
@@ -125,7 +114,20 @@ export default function Header({
         window.history.replaceState(null, "", newUrl);
       }
     }
-  }, []);
+  }, [credits, setCredits]);
+
+  const handleMenuClick = (section: string) => {
+    showSection(section);
+    setMenuOpen(false);
+  };
+
+  const logoutFunction = () => {
+    setUserName(null);
+    setCredits(0);
+    localStorage.removeItem("userName");
+    localStorage.removeItem("bromaCredits");
+    setShowProfileMenu(false);
+  };
 
   return (
     <header className="w-full flex justify-between items-center px-6 py-4 fixed top-0 left-0 z-50 bg-black shadow-lg">
@@ -243,9 +245,9 @@ export default function Header({
           <p className="font-bold mb-3 text-center">Verifica tu número</p>
           <input
             type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="600000000"
+            value={phoneLogin}
+            onChange={(e) => setPhoneLogin(e.target.value)}
+            placeholder="+34 600000000"
             className="w-full p-2 rounded mb-2 text-black"
           />
           {confirmationResult && (
